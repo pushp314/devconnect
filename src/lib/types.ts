@@ -11,9 +11,33 @@ export type Tag = string;
 export type Snippet = {
   id: string;
   author: User;
+  title: string;
   description: string;
   code: string;
   language: string;
+  tags: Tag[];
+  likes: number;
+  commentsCount: number;
+  createdAt: string;
+};
+
+export type UIComponent = {
+  id: string;
+  name: string;
+  description: string;
+  author: User;
+  code: string;
+  tags: Tag[];
+  likes: number;
+  createdAt: string;
+};
+
+export type Doc = {
+  id: string;
+  title: string;
+  slug: string;
+  author: User;
+  content: string;
   tags: Tag[];
   likes: number;
   commentsCount: number;
