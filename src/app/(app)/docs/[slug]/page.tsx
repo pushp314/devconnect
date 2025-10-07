@@ -1,10 +1,27 @@
-import { getDocumentBySlug } from '@/app/actions/documents';
-import { notFound } from 'next/navigation';
+import { getDocumentBySlug, deleteDocument } from '@/app/actions/documents';
+import { notFound, redirect } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { CodeBlock } from '@/components/code-block';
 import { DocInteraction } from '@/components/doc-interaction';
 import type { Document, User } from '@prisma/client';
+import { auth } from '@/lib/auth';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { Pencil, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { DeleteDocButton } from '@/components/delete-doc-button';
+
 
 const renderMarkdown = (markdown: string) => {
   const parts = markdown.split(/(```[\s\S]*?```)/);
@@ -32,16 +49,28 @@ const renderMarkdown = (markdown: string) => {
 
 
 export default async function DocPage({ params }: { params: { slug: string } }) {
+  const session = await auth();
   const doc = await getDocumentBySlug(params.slug);
 
   if (!doc) {
     notFound();
   }
-
+  
+  const isAuthor = session?.user?.id === doc.authorId;
   const author = doc.author as User;
 
   return (
     <article className="container max-w-3xl mx-auto py-8">
+       {isAuthor && (
+          <div className="flex justify-end gap-2 mb-4">
+              <Button variant="outline" asChild>
+                  <Link href={`/docs/${doc.slug}/edit`}>
+                      <Pencil className="mr-2 h-4 w-4" /> Edit
+                  </Link>
+              </Button>
+              <DeleteDocButton documentId={doc.id} />
+          </div>
+      )}
       <header className="mb-8">
         <h1 className="text-4xl font-extrabold font-headline tracking-tight lg:text-5xl mb-4">
           {doc.title}
@@ -69,7 +98,7 @@ export default async function DocPage({ params }: { params: { slug: string } }) 
       </div>
 
       <footer className="mt-12 pt-8 border-t">
-        <DocInteraction doc={doc as Document} />
+        <DocInteraction doc={doc as any} />
       </footer>
     </article>
   );

@@ -94,7 +94,7 @@ export async function getSnippetById(id: string) {
 }
 
 
-export async function getSnippets({ page = 1, limit = 10, query, language, sortBy }: { page?: number; limit?: number; query?: string, language?: string, sortBy?: string }) {
+export async function getSnippets({ page = 1, limit = 10, query, language, sortBy }: { page?: number; limit?: number; query?: string, language?: string, sortBy?: 'newest' | 'most-liked' | 'most-commented' }) {
     const whereClause: any = {};
      if (language && language !== 'All') {
         whereClause.language = language;
@@ -125,17 +125,24 @@ export async function getSnippets({ page = 1, limit = 10, query, language, sortB
             likes: true,
             comments: true,
             savedBy: true,
+            _count: {
+                select: {
+                    likes: true,
+                    comments: true,
+                }
+            }
         }
     });
     
     const session = await auth();
+    const currentUserId = session?.user?.id;
 
     return snippets.map(snippet => ({
         ...snippet,
-        likesCount: snippet.likes.length,
-        commentsCount: snippet.comments.length,
-        isLiked: session?.user?.id ? !!snippet.likes.find(like => like.userId === session.user.id) : false,
-        isSaved: session?.user?.id ? !!snippet.savedBy.find(save => save.userId === session.user.id) : false,
+        likesCount: snippet._count.likes,
+        commentsCount: snippet._count.comments,
+        isLiked: currentUserId ? !!snippet.likes.find(like => like.userId === currentUserId) : false,
+        isSaved: currentUserId ? !!snippet.savedBy.find(save => save.userId === currentUserId) : false,
     }));
 }
 
@@ -233,4 +240,58 @@ export async function deleteSnippet(snippetId: string) {
     revalidatePath('/feed');
     revalidatePath('/explore');
     revalidatePath(`/profile/${session.user.username}`);
+}
+
+const commentSchema = z.object({
+  content: z.string().min(1, 'Comment cannot be empty.'),
+  snippetId: z.string(),
+});
+
+export async function addSnippetComment(values: z.infer<typeof commentSchema>) {
+  const session = await auth();
+  if (!session?.user?.id || !session.user.name) {
+    throw new Error('You must be logged in to comment.');
+  }
+
+  const validatedFields = commentSchema.safeParse(values);
+  if (!validatedFields.success) {
+    throw new Error('Invalid comment data.');
+  }
+
+  const { content, snippetId } = validatedFields.data;
+  
+  const snippet = await db.snippet.findUnique({ where: { id: snippetId }});
+  if (!snippet) throw new Error('Snippet not found');
+
+  await db.comment.create({
+    data: {
+      content,
+      authorId: session.user.id,
+      snippetId,
+    },
+  });
+  
+  if (session.user.id !== snippet.authorId) {
+    await createNotification({
+        userId: snippet.authorId,
+        type: 'COMMENT',
+        message: `${session.user.name} commented on your snippet: "${snippet.title}"`,
+        link: `/feed#${snippet.id}`,
+    });
+  }
+
+  revalidatePath('/feed');
+  revalidatePath('/explore');
+}
+
+export async function getSnippetComments(snippetId: string) {
+  return db.comment.findMany({
+    where: { snippetId },
+    include: {
+      author: true,
+    },
+    orderBy: {
+      createdAt: 'asc',
+    },
+  });
 }

@@ -27,7 +27,7 @@ export async function SnippetCard({ snippet }: SnippetCardProps) {
   const isAuthor = session?.user?.id === snippet.authorId;
 
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-lg hover:border-primary/50 flex flex-col">
+    <Card id={snippet.id} className="overflow-hidden transition-all hover:shadow-lg hover:border-primary/50 flex flex-col">
       <CardHeader className="flex flex-row items-start gap-4 space-y-0">
         <Avatar>
           <AvatarImage src={snippet.author.image ?? undefined} alt={snippet.author.name ?? ''} data-ai-hint="person face" />

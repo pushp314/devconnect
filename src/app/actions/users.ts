@@ -5,7 +5,8 @@ import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { createNotification } from './notifications';
-import type { User, Snippet, Document, Like, Comment, SavedSnippet, DocumentSave } from '@prisma/client';
+import type { User, Snippet, Document, Like, Comment, SavedSnippet, DocumentSave, DocumentLike, DocumentComment, Follows } from '@prisma/client';
+
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -48,6 +49,7 @@ export async function getUserProfile(username: string) {
           author: true,
           likes: true,
           comments: true,
+          _count: { select: { likes: true, comments: true } },
         },
       },
       documents: {
@@ -56,6 +58,7 @@ export async function getUserProfile(username: string) {
           author: true,
           likes: true,
           comments: true,
+           _count: { select: { likes: true, comments: true } },
         },
       },
       followers: true,
@@ -67,6 +70,7 @@ export async function getUserProfile(username: string) {
               author: true,
               likes: true,
               comments: true,
+              _count: { select: { likes: true, comments: true } },
             },
           },
         },
@@ -78,17 +82,26 @@ export async function getUserProfile(username: string) {
               author: true,
               likes: true,
               comments: true,
+              _count: { select: { likes: true, comments: true } },
             },
           },
         },
       },
+      _count: {
+        select: {
+          snippets: true,
+          documents: true,
+          followers: true,
+          following: true,
+        },
+      }
     },
   });
 
   if (!user) {
     return null;
   }
-
+  
   const isFollowing = currentUserId
     ? !!(await db.follows.findUnique({
         where: {
@@ -100,11 +113,50 @@ export async function getUserProfile(username: string) {
       }))
     : false;
 
+  const processItems = (items: any[], currentUserId?: string) => {
+    return items.map((item: any) => ({
+      ...item,
+      likesCount: item._count.likes,
+      commentsCount: item._count.comments,
+      isLiked: currentUserId ? !!item.likes.find((like: any) => like.userId === currentUserId) : false,
+      isSaved: false, // This needs to be determined differently if we add saved status here
+    }));
+  };
+
+  const processSavedSnippets = (items: any[], currentUserId?: string) => {
+    return items.map((item: any) => {
+      const snippet = item.snippet;
+      return {
+      ...snippet,
+      likesCount: snippet._count.likes,
+      commentsCount: snippet._count.comments,
+      isLiked: currentUserId ? !!snippet.likes.find((like: any) => like.userId === currentUserId) : false,
+      isSaved: true,
+    }});
+  };
+  const processSavedDocs = (items: any[], currentUserId?: string) => {
+     return items.map((item: any) => {
+      const doc = item.document;
+      return {
+      ...doc,
+      likesCount: doc._count.likes,
+      commentsCount: doc._count.comments,
+      isLiked: currentUserId ? !!doc.likes.find((like: any) => like.userId === currentUserId) : false,
+      isSaved: true,
+    }});
+  };
+
   return {
     ...user,
+    snippets: processItems(user.snippets, currentUserId),
+    documents: processItems(user.documents, currentUserId),
+    savedSnippets: processSavedSnippets(user.savedSnippets, currentUserId),
+    savedDocuments: processSavedDocs(user.savedDocs, currentUserId),
     isFollowing,
-    followersCount: user.followers.length,
-    followingCount: user.following.length,
+    followersCount: user._count.followers,
+    followingCount: user._count.following,
+    snippetsCount: user._count.snippets,
+    documentsCount: user._count.documents,
   };
 }
 
@@ -161,7 +213,7 @@ export async function toggleFollow(targetUserId: string) {
 
 export async function updateUserProfile(values: z.infer<typeof profileSchema>) {
   const session = await auth();
-  if (!session?.user?.id) {
+  if (!session?.user?.id || !session.user.username) {
     throw new Error('You must be logged in to update your profile.');
   }
   
@@ -224,6 +276,7 @@ export async function getSavedItems() {
                     likes: true,
                     comments: true,
                     savedBy: true,
+                    _count: { select: { likes: true, comments: true } },
                 }
             }
         },
@@ -238,6 +291,7 @@ export async function getSavedItems() {
                     author: true,
                     likes: true,
                     comments: true,
+                    _count: { select: { likes: true, comments: true } },
                 }
             }
         },
@@ -248,8 +302,8 @@ export async function getSavedItems() {
         const snippet = s.snippet;
         return {
             ...snippet,
-            likesCount: snippet.likes.length,
-            commentsCount: snippet.comments.length,
+            likesCount: snippet._count.likes,
+            commentsCount: snippet._count.comments,
             isLiked: !!snippet.likes.find(like => like.userId === session.user?.id),
             isSaved: !!snippet.savedBy.find(save => save.userId === session.user?.id),
         }
@@ -257,8 +311,8 @@ export async function getSavedItems() {
     
     const populatedDocs = savedDocuments.map(d => ({
         ...d.document,
-        likesCount: d.document.likes.length,
-        commentsCount: d.document.comments.length,
+        likesCount: d.document._count.likes,
+        commentsCount: d.document._count.comments,
     }));
 
     return { savedSnippets: populatedSnippets, savedDocuments: populatedDocs };

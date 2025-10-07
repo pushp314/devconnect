@@ -3,10 +3,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SnippetCard } from "@/components/snippet-card";
 import { DocCard } from "@/components/doc-card";
-import { AtSign } from "lucide-react";
+import { AtSign, Github, Twitter, Code, BookOpen } from "lucide-react";
 import { getUserProfile } from "@/app/actions/users";
-import type { User, Snippet, Document as DocType, Like, Comment } from "@prisma/client";
+import type { User, Snippet, Document as DocType, Like, Comment, SavedSnippet, DocumentSave } from "@prisma/client";
 import { FollowButton } from "@/components/follow-button";
+import Link from 'next/link';
 
 type PopulatedSnippet = Snippet & {
   author: User;
@@ -35,16 +36,15 @@ export default async function ProfilePage({ params }: { params: { userId: string
   const snippets = profile.snippets as PopulatedSnippet[];
   const documents = profile.documents as PopulatedDoc[];
 
-  // This would also come from the DB in a real app
-  const savedSnippets = (profile.savedSnippets?.map(s => s.snippet) ?? []) as PopulatedSnippet[];
-  const savedDocuments = (profile.savedDocuments?.map(d => d.document) ?? []) as PopulatedDoc[];
+  const savedSnippets = profile.savedSnippets as PopulatedSnippet[];
+  const savedDocuments = profile.savedDocuments as PopulatedDoc[];
 
 
   return (
     <div className="container py-8">
       <header className="flex flex-col md:flex-row items-center gap-8 mb-10">
         <Avatar className="h-32 w-32 border-4 border-primary">
-          <AvatarImage src={user.image ?? undefined} alt={user.name ?? ''} data-ai-hint="person face" />
+          <AvatarImage src={user.image ?? undefined} alt={user.name ?? ''} data-ai-hint="person face"/>
           <AvatarFallback className="text-4xl">{userInitials}</AvatarFallback>
         </Avatar>
         <div className="flex-1 text-center md:text-left">
@@ -54,7 +54,27 @@ export default async function ProfilePage({ params }: { params: { userId: string
             <span>{user.username}</span>
           </div>
           <p className="mt-3 max-w-xl mx-auto md:mx-0">{user.bio}</p>
+          <div className="mt-4 flex items-center justify-center md:justify-start gap-4">
+            {user.githubUrl && (
+              <Link href={user.githubUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+                <Github className="h-5 w-5" />
+              </Link>
+            )}
+            {user.twitterUrl && (
+              <Link href={user.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+                <Twitter className="h-5 w-5" />
+              </Link>
+            )}
+          </div>
           <div className="mt-4 flex items-center justify-center md:justify-start gap-6">
+            <div className="text-center">
+              <p className="text-2xl font-bold">{profile.snippetsCount}</p>
+              <p className="text-sm text-muted-foreground">Snippets</p>
+            </div>
+             <div className="text-center">
+              <p className="text-2xl font-bold">{profile.documentsCount}</p>
+              <p className="text-sm text-muted-foreground">Documents</p>
+            </div>
             <div className="text-center">
               <p className="text-2xl font-bold">{profile.followersCount}</p>
               <p className="text-sm text-muted-foreground">Followers</p>
@@ -94,7 +114,7 @@ export default async function ProfilePage({ params }: { params: { userId: string
            {documents.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {documents.map(doc => (
-                    <DocCard key={doc.id} doc={doc} />
+                    <DocCard key={doc.id} doc={doc as any} />
                 ))}
             </div>
            ) : (
@@ -126,7 +146,7 @@ export default async function ProfilePage({ params }: { params: { userId: string
                  {savedDocuments.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {savedDocuments.map(doc => (
-                            <DocCard key={doc.id} doc={doc} />
+                            <DocCard key={doc.id} doc={doc as any} />
                         ))}
                     </div>
                  ) : (
