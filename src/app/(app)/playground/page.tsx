@@ -5,7 +5,7 @@ import { LiveProvider, LiveEditor, LiveError, LivePreview } from 'react-live';
 import { useTheme } from 'next-themes';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import * as ShadcnUI from '@/components/ui';
+import { Button } from '@/components/ui/button';
 import * as LucideReact from 'lucide-react';
 
 const initialCode = `() => {
@@ -15,7 +15,7 @@ const initialCode = `() => {
             <h3 className="font-headline text-2xl">Hello From the Playground!</h3>
             <p className="text-muted-foreground">This is a live React preview.</p>
             <Button onClick={() => setCount(count + 1)}>
-                <Plus className="mr-2" />
+                <LucideReact.Plus className="mr-2" />
                 Clicked {count} times
             </Button>
         </div>
@@ -43,8 +43,8 @@ export default function PlaygroundPage() {
     const scope = {
         React,
         useState,
-        ...ShadcnUI,
-        ...LucideReact
+        Button,
+        LucideReact
     };
 
     return (
