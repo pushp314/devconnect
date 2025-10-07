@@ -1,10 +1,13 @@
 import type { Snippet, User, UIComponent, Doc, BugReport } from './types';
+import { PlaceHolderImages } from './placeholder-images';
+
+const findImage = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || `https://picsum.photos/seed/${id}/40/40`;
 
 export const mockUsers: User[] = [
-  { id: '1', name: 'Elena overstated', username: 'elena', avatarUrl: 'https://picsum.photos/seed/tech-dev1/40/40', bio: 'Full-stack developer with a passion for open-source and elegant code.' },
-  { id: '2', name: 'Ben Carter', username: 'bencarter', avatarUrl: 'https://picsum.photos/seed/coder-2/40/40', bio: 'Frontend wizard, React enthusiast, and UI/UX advocate.' },
-  { id: '3', name: 'Mei Lin', username: 'meilin', avatarUrl: 'https://picsum.photos/seed/dev-3/40/40', bio: 'Data scientist and Pythonista. Turning data into stories.' },
-  { id: '4', name: 'Chris Rodriguez', username: 'chris_r', avatarUrl: 'https://picsum.photos/seed/hacker-gal/40/40', bio: 'DevOps engineer and cloud infrastructure expert.' },
+  { id: '1', name: 'Elena overstated', username: 'elena', avatarUrl: findImage('user-avatar-1'), bio: 'Full-stack developer with a passion for open-source and elegant code.' },
+  { id: '2', name: 'Ben Carter', username: 'bencarter', avatarUrl: findImage('user-avatar-2'), bio: 'Frontend wizard, React enthusiast, and UI/UX advocate.' },
+  { id: '3', name: 'Mei Lin', username: 'meilin', avatarUrl: findImage('user-avatar-3'), bio: 'Data scientist and Pythonista. Turning data into stories.' },
+  { id: '4', name: 'Chris Rodriguez', username: 'chris_r', avatarUrl: findImage('user-avatar-4'), bio: 'DevOps engineer and cloud infrastructure expert.' },
 ];
 
 export const mockSnippets: Snippet[] = [

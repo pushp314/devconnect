@@ -9,9 +9,6 @@ export default function ComponentsPage() {
         {mockComponents.map((component) => (
           <ComponentCard key={component.id} component={component} />
         ))}
-        {mockComponents.map((component) => (
-          <ComponentCard key={`${component.id}-2`} component={component} />
-        ))}
       </div>
     </div>
   );

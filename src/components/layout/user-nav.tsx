@@ -11,14 +11,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { User, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export function UserNav() {
+  const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar-5');
+
   // Mock user data, replace with actual session data
   const user = {
     name: "Jane Doe",
     username: "jane.doe",
     email: "jane.doe@example.com",
-    avatar: "https://picsum.photos/seed/user-avatar/40/40",
+    avatar: userAvatar?.imageUrl || "https://picsum.photos/seed/user-avatar/40/40",
   };
   const userInitials = user.name.split(' ').map(n => n[0]).join('');
 

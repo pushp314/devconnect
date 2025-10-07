@@ -20,9 +20,6 @@ export default function CommunityPage() {
         {mockUsers.map((user) => (
           <UserCard key={user.id} user={user} />
         ))}
-         {mockUsers.map((user) => (
-          <UserCard key={`${user.id}-2`} user={user} />
-        ))}
       </div>
     </div>
   );

@@ -45,9 +45,6 @@ export default function ExplorePage() {
         {mockSnippets.map((snippet) => (
           <SnippetCard key={snippet.id} snippet={snippet} />
         ))}
-        {mockSnippets.map((snippet) => (
-          <SnippetCard key={`${snippet.id}-2`} snippet={snippet} />
-        ))}
       </div>
     </div>
   );

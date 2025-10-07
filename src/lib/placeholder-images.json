@@ -26,8 +26,8 @@
     },
     {
       "id": "user-avatar-5",
-      "description": "User avatar 5",
-      "imageUrl": "https://picsum.photos/seed/js-ninja/40/40",
+      "description": "User avatar for Jane Doe",
+      "imageUrl": "https://picsum.photos/seed/user-avatar/40/40",
       "imageHint": "person face"
     }
   ]
