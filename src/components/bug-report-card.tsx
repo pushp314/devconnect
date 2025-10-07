@@ -110,7 +110,7 @@ export function BugReportCard({ bug }: BugReportCardProps) {
           </div>
           <div className="flex items-center gap-2">
             <MessageCircle className="h-4 w-4" />
-            <span>{bug.comments.length} Comments</span>
+            <span>0 Comments</span>
           </div>
         </div>
         <Button variant="outline">View Details</Button>

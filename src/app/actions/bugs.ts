@@ -75,7 +75,6 @@ export async function getBugs({
     include: {
       reporter: true,
       upvotes: true,
-      comments: true,
     },
   });
 }
