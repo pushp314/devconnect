@@ -51,5 +51,8 @@
     "prisma": "^5.17.0",
     "tailwindcss": "^3.4.6",
     "typescript": "^5"
+  },
+  "overrides": {
+    "@prisma/engines": "5.17.0"
   }
 }
