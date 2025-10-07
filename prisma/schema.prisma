@@ -11,13 +11,32 @@ datasource db {
 }
 
 model User {
-  id    String     @id @default(cuid())
-  name  String?
-  email String?    @unique
+  id            String          @id @default(cuid())
+  name          String?
+  username      String?         @unique
+  email         String?         @unique
   emailVerified DateTime?
-  image String?
-  accounts Account[]
-  sessions Session[]
+  image         String?
+  bio           String?
+  githubUrl     String?
+  twitterUrl    String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  snippets      Snippet[]
+  docs          Doc[]
+  bugReports    BugReport[]
+  comments      Comment[]
+  
+  likedSnippets SnippetLike[]
+  savedSnippets SnippetSave[]
+  likedDocs     DocLike[]
+  savedDocs     DocSave[]
+  
+  followers     Follow[]     @relation("Following")
+  following     Follow[]     @relation("Follower")
 }
 
 model Account {
@@ -53,4 +72,146 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Snippet {
+  id            String   @id @default(cuid())
+  title         String
+  description   String
+  code          String   @db.Text
+  language      String
+  tags          String[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  authorId      String
+  author        User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  comments      Comment[]
+  likes         SnippetLike[]
+  saves         SnippetSave[]
+
+  @@index([authorId])
+}
+
+model Doc {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  title         String
+  content       String   @db.Text
+  tags          String[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  authorId      String
+  author        User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  comments      Comment[]
+  likes         DocLike[]
+  saves         DocSave[]
+  
+  @@index([authorId])
+}
+
+model BugReport {
+  id            String   @id @default(cuid())
+  title         String
+  description   String   @db.Text
+  status        String   @default("Open") // Open, In Progress, Closed
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  reporterId    String
+  reporter      User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  
+  // upvotes will be handled via a relation similar to likes
+  
+  @@index([reporterId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  authorId  String
+  author    User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  snippetId String?
+  snippet   Snippet? @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+
+  docId     String?
+  doc       Doc?     @relation(fields: [docId], references: [id], onDelete: Cascade)
+  
+  @@index([authorId])
+  @@index([snippetId])
+  @@index([docId])
+}
+
+// --- Join Tables for Likes, Saves, Follows ---
+
+model SnippetLike {
+  userId     String
+  snippetId  String
+  createdAt  DateTime @default(now())
+
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snippet    Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+  
+  @@id([userId, snippetId])
+  @@index([userId])
+  @@index([snippetId])
+}
+
+model SnippetSave {
+  userId     String
+  snippetId  String
+  createdAt  DateTime @default(now())
+  
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snippet    Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+
+  @@id([userId, snippetId])
+  @@index([userId])
+  @@index([snippetId])
+}
+
+model DocLike {
+  userId    String
+  docId     String
+  createdAt DateTime @default(now())
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  doc       Doc  @relation(fields: [docId], references: [id], onDelete: Cascade)
+
+  @@id([userId, docId])
+  @@index([userId])
+  @@index([docId])
+}
+
+model DocSave {
+  userId    String
+  docId     String
+  createdAt DateTime @default(now())
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  doc       Doc  @relation(fields: [docId], references: [id], onDelete: Cascade)
+
+  @@id([userId, docId])
+  @@index([userId])
+  @@index([docId])
+}
+
+model Follow {
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower    User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }
