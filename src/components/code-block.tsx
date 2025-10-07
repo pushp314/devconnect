@@ -1,9 +1,9 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Copy } from "lucide-react";
+import { Skeleton } from "./ui/skeleton";
 
 interface CodeBlockProps {
   code: string;
@@ -11,7 +11,6 @@ interface CodeBlockProps {
 }
 
 export function CodeBlock({ code, language }: CodeBlockProps) {
-  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -21,18 +20,24 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
     // You can add a toast notification here to indicate success
   };
 
-  const backgroundColor = theme === 'dark' ? '#1E1E1E' : '#F5F5F5';
-  
   if (!mounted) {
-    // Avoid rendering mismatch during server-side rendering
-    return <div className="h-48 w-full animate-pulse rounded-md bg-muted" />;
+    // Render a server-side placeholder to prevent layout shift
+    return (
+      <div className="relative rounded-md font-code text-sm group bg-muted/50">
+        <pre 
+          className="p-4 rounded-md overflow-x-auto"
+        >
+          <code className={`language-${language}`}>{code.trim()}</code>
+        </pre>
+        <Skeleton className="absolute top-2 right-2 h-8 w-8" />
+      </div>
+    );
   }
 
   return (
     <div className="relative rounded-md font-code text-sm group bg-muted/50">
       <pre 
         className="p-4 rounded-md overflow-x-auto"
-        style={{ backgroundColor }}
       >
         <code className={`language-${language}`}>{code.trim()}</code>
       </pre>

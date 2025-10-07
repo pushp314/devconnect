@@ -1,15 +1,16 @@
 "use client";
 
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Code, Eye, Heart } from "lucide-react";
 import type { UIComponent } from "@/lib/types";
-import { LiveProvider, LiveEditor, LiveError, LivePreview } from 'react-live';
+import { LiveProvider, LiveError, LivePreview } from 'react-live';
 import { useTheme } from 'next-themes';
+import { Skeleton } from './ui/skeleton';
 
 interface ComponentCardProps {
   component: UIComponent;
@@ -170,13 +171,22 @@ const reactLiveTheme = {
 
 export function ComponentCard({ component }: ComponentCardProps) {
   const [showCode, setShowCode] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { theme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <Card className="overflow-hidden transition-all hover:shadow-lg hover:border-primary/50">
-      <LiveProvider code={component.code} scope={{ React, useState }}>
-        <div className="relative p-6 border-b">
-            <LivePreview className="w-full flex items-center justify-center min-h-[100px]" />
+      <LiveProvider code={component.code} scope={{ React, useState, Button }}>
+        <div className="relative p-6 border-b min-h-[164px] flex items-center justify-center">
+            {mounted ? (
+              <LivePreview className="w-full flex items-center justify-center" />
+            ) : (
+              <Skeleton className="w-full h-24" />
+            )}
         </div>
         <CardHeader>
           <CardTitle className="font-headline text-xl">{component.name}</CardTitle>
@@ -188,10 +198,11 @@ export function ComponentCard({ component }: ComponentCardProps) {
               <Badge key={tag} variant="secondary">{tag}</Badge>
             ))}
           </div>
-          {showCode && (
+          {showCode && mounted && (
             <div className="mt-4 rounded-md overflow-hidden border">
-              <LiveEditor theme={theme === 'dark' ? reactLiveTheme.dark : reactLiveTheme.light} style={{ fontFamily: '"Source Code Pro", monospace', fontSize: 14 }} />
-              <LiveError className="bg-destructive text-destructive-foreground p-4 text-xs font-mono" />
+              <LiveProvider code={component.code} scope={{ React, useState, Button }}>
+                <LiveError className="bg-destructive text-destructive-foreground p-4 text-xs font-mono" />
+              </LiveProvider>
             </div>
           )}
         </CardContent>

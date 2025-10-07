@@ -19,9 +19,9 @@ const config = {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-inter)"],
-        headline: ["var(--font-headline)"],
-        code: ["var(--font-code)"],
+        sans: ["var(--font-inter)", "sans-serif"],
+        headline: ["var(--font-headline)", "sans-serif"],
+        code: ["var(--font-code)", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -7,10 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { TagInput } from '@/components/tag-input';
-import { useToast } from '@/hooks/use-toast';
 
 export default function NewDocPage() {
-  const { toast } = useToast();
   const [tags, setTags] = useState<string[]>([]);
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
@@ -25,10 +23,10 @@ export default function NewDocPage() {
   const handleSubmit = () => {
     // In a real app, you would send this data to your backend
     console.log({ title, slug, content, tags });
-    toast({
-      title: "Document Published",
-      description: "Your document has been successfully published.",
-    });
+    // toast({
+    //   title: "Document Published",
+    //   description: "Your document has been successfully published.",
+    // });
   };
 
   return (
