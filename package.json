@@ -9,8 +9,7 @@
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
-    "prisma:push": "prisma db push",
-    "postinstall": "node -e \"const fs = require('fs'); const path = require('path'); const files = fs.readdirSync(path.join('node_modules', '.prisma', 'client')); files.forEach(file => { if (file.includes('debian-openssl-3.0.x')) { fs.copyFileSync(path.join('node_modules', '.prisma', 'client', file), path.join('node_modules', '.prisma', 'client', file.replace('debian-openssl-3.0.x', 'debian-openssl-1.1.x'))); } });\""
+    "prisma:push": "prisma db push"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.4.1",
@@ -51,5 +50,8 @@
     "prisma": "^5.17.0",
     "tailwindcss": "^3.4.6",
     "typescript": "^5"
+  },
+  "overrides": {
+    "@prisma/engines": "5.17.0"
   }
 }

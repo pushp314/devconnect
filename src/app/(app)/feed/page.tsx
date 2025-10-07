@@ -37,7 +37,7 @@ export default async function FeedPage() {
           </div>
         )}
       </div>
-      <aside className="hidden md:block">
+      <aside className="hidden md:block sticky top-20 h-fit">
         <AISnippetGenerator />
       </aside>
     </div>
