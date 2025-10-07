@@ -16,6 +16,7 @@ export function UserNav() {
   // Mock user data, replace with actual session data
   const user = {
     name: "Jane Doe",
+    username: "jane.doe",
     email: "jane.doe@example.com",
     avatar: "https://picsum.photos/seed/user-avatar/40/40",
   };
@@ -43,7 +44,7 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link href="/profile">
+            <Link href={`/profile/${user.username}`}>
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </Link>
