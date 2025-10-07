@@ -40,13 +40,13 @@ Also, consider the overall purpose and functionality of the code.
 Return a list of tags that are most relevant and descriptive.
 
 Code Snippet:
-```
+\`\`\`
 {{{code}}}
-```
+\`\`\`
 
 Description: {{{description}}}
 
-Tags:`, // Removed array square brackets from prompt because array is not handled properly
+Tags:`,
 });
 
 const aiSnippetTaggingFlow = ai.defineFlow(
