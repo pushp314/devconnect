@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Home, Compass, SquareCode, BookOpen, Users, Settings, Bookmark } from "lucide-react";
+import { Home, Compass, SquareCode, BookOpen, Users, Settings, Bookmark, Code, Bug } from "lucide-react";
 
 const mainNavLinks = [
   { href: "/feed", icon: Home, label: "Feed" },
   { href: "/explore", icon: Compass, label: "Explore" },
+  { href: "/playground", icon: Code, label: "Playground" },
   { href: "/components", icon: SquareCode, label: "Components" },
   { href: "/docs", icon: BookOpen, label: "Docs" },
   { href: "/community", icon: Users, label: "Community" },
+  { href: "/bugs", icon: Bug, label: "Bugs" },
   { href: "/saved", icon: Bookmark, label: "Saved" },
 ];
 

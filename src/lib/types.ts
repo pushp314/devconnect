@@ -43,3 +43,14 @@ export type Doc = {
   commentsCount: number;
   createdAt: string;
 };
+
+export type BugReport = {
+  id: string;
+  title: string;
+  description: string;
+  reporter: User;
+  upvotes: number;
+  commentsCount: number;
+  createdAt: string;
+  status: 'Open' | 'In Progress' | 'Closed';
+};

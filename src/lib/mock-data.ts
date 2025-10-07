@@ -1,4 +1,4 @@
-import type { Snippet, User, UIComponent, Doc } from './types';
+import type { Snippet, User, UIComponent, Doc, BugReport } from './types';
 
 export const mockUsers: User[] = [
   { id: '1', name: 'Elena overstated', username: 'elena', avatarUrl: 'https://picsum.photos/seed/tech-dev1/40/40', bio: 'Full-stack developer with a passion for open-source and elegant code.' },
@@ -207,4 +207,28 @@ This will apply \`grid-cols-1\` on small screens and \`grid-cols-2\` on screens 
     commentsCount: 22,
     createdAt: '1 month ago',
   },
+];
+
+
+export const mockBugs: BugReport[] = [
+    {
+        id: 'bug_1',
+        title: 'Component preview crashes on mobile',
+        description: 'When viewing a component on a screen smaller than `sm`, the live preview area overflows and causes the whole page to crash. This seems to be related to how `react-live` handles responsive rendering.',
+        reporter: mockUsers[1],
+        upvotes: 23,
+        commentsCount: 8,
+        createdAt: '2 days ago',
+        status: 'Open'
+    },
+    {
+        id: 'bug_2',
+        title: 'AI tag generation returns duplicates',
+        description: 'The "Generate with AI" button for tags sometimes suggests tags that are already present in the input field, leading to duplicate tags if the user isn\'t paying attention.',
+        reporter: mockUsers[3],
+        upvotes: 12,
+        commentsCount: 3,
+        createdAt: '4 days ago',
+        status: 'In Progress'
+    }
 ];
