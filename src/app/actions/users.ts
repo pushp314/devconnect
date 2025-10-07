@@ -32,7 +32,7 @@ type UserProfile = User & {
     followers: Follows[];
     following: Follows[];
     savedSnippets: (SavedSnippet & { snippet: PopulatedSnippetForProfile })[];
-    savedDocuments: (DocumentSave & { document: PopulatedDocForProfile })[];
+    savedDocs: (DocumentSave & { document: PopulatedDocForProfile })[];
 }
 
 export async function getUserProfile(username: string) {
@@ -71,7 +71,7 @@ export async function getUserProfile(username: string) {
           },
         },
       },
-      savedDocuments: {
+      savedDocs: {
         include: {
           document: {
             include: {
