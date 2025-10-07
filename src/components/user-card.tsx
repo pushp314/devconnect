@@ -1,27 +1,27 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import type { User } from "@/lib/types";
-import { UserPlus, UserCheck } from "lucide-react";
+import type { User } from "@prisma/client";
+import { FollowButton } from "./follow-button";
+import { getUserProfile } from "@/app/actions/users";
 
 interface UserCardProps {
   user: User;
 }
 
-export function UserCard({ user }: UserCardProps) {
-    const [isFollowing, setIsFollowing] = useState(false);
-    const userInitials = user.name.split(' ').map(n => n[0]).join('');
+export async function UserCard({ user }: UserCardProps) {
+    const userInitials = user.name?.split(' ').map(n => n[0]).join('') ?? '';
+    
+    // We need to get the `isFollowing` status for the button
+    const profile = await getUserProfile(user.username!);
+    const isFollowing = profile?.isFollowing ?? false;
 
   return (
     <Card className="text-center transition-all hover:shadow-lg hover:border-primary/50">
       <CardHeader>
         <Link href={`/profile/${user.username}`} className="flex flex-col items-center gap-4">
             <Avatar className="h-20 w-20 border-2 border-primary">
-            <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="person face" />
+            <AvatarImage src={user.image ?? undefined} alt={user.name ?? ''} data-ai-hint="person face" />
             <AvatarFallback className="text-2xl">{userInitials}</AvatarFallback>
             </Avatar>
             <div>
@@ -34,14 +34,7 @@ export function UserCard({ user }: UserCardProps) {
         <p className="text-sm text-muted-foreground mb-4 h-10 overflow-hidden">
           {user.bio}
         </p>
-        <Button 
-          variant={isFollowing ? 'secondary' : 'default'}
-          className="w-full"
-          onClick={() => setIsFollowing(!isFollowing)}
-        >
-          {isFollowing ? <UserCheck /> : <UserPlus />}
-          <span>{isFollowing ? 'Following' : 'Follow'}</span>
-        </Button>
+        <FollowButton targetUserId={user.id} isFollowing={isFollowing} />
       </CardContent>
     </Card>
   );

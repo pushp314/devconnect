@@ -1,32 +1,59 @@
 "use client";
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { TagInput } from '@/components/tag-input';
+import { createDocument } from '@/app/actions/documents';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export default function NewDocPage() {
+  const user = useCurrentUser();
+  const router = useRouter();
+  const { toast } = useToast();
   const [tags, setTags] = useState<string[]>([]);
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [content, setContent] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
+  if (!user) {
+    // Or a loading spinner, or a proper unauthorized message
+    router.push('/auth/signin');
+    return null;
+  }
+
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
     setSlug(newTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''));
   };
 
-  const handleSubmit = () => {
-    // In a real app, you would send this data to your backend
-    console.log({ title, slug, content, tags });
-    // toast({
-    //   title: "Document Published",
-    //   description: "Your document has been successfully published.",
-    // });
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const newDoc = await createDocument({ title, slug, content, tags });
+      toast({
+        title: "Document Published",
+        description: "Your document has been successfully published.",
+      });
+      router.push(`/docs/${newDoc.slug}`);
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to publish the document. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -72,7 +99,10 @@ export default function NewDocPage() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="button" onClick={handleSubmit}>Publish Document</Button>
+          <Button type="button" onClick={handleSubmit} disabled={isSubmitting || !title || !slug || !content || tags.length === 0}>
+            {isSubmitting && <Loader2 className="animate-spin mr-2" />}
+            Publish Document
+          </Button>
         </CardFooter>
       </Card>
     </div>

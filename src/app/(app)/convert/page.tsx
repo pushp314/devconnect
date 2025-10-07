@@ -7,15 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { CodeBlock } from '@/components/code-block';
+import { convertCodeAction } from '@/app/actions/ai';
+import { useToast } from '@/hooks/use-toast';
 
 const languages = ["JavaScript", "TypeScript", "Python", "Java", "Go", "Rust", "HTML", "CSS"];
-
-// Mock function
-const convertCodeAction = async ({ code, sourceLang, targetLang }: { code: string; sourceLang: string; targetLang: string; }): Promise<string> => {
-    console.log("Converting code:", { code, sourceLang, targetLang });
-    await new Promise(resolve => setTimeout(resolve, 1500)); // simulate AI processing
-    return `// Converted from ${sourceLang} to ${targetLang}\n// Original code:\n${code.split('\n').map(line => `// ${line}`).join('\n')}\n\n// TODO: Implement conversion logic\n\nfunction convertedCode() {\n  return "This is the converted code in ${targetLang}";\n}`;
-};
 
 export default function ConvertPage() {
     const [sourceCode, setSourceCode] = useState('');
@@ -23,18 +18,32 @@ export default function ConvertPage() {
     const [sourceLang, setSourceLang] = useState('');
     const [targetLang, setTargetLang] = useState('');
     const [isConverting, setIsConverting] = useState(false);
+    const { toast } = useToast();
 
     const handleConvert = async () => {
         if (!sourceCode || !sourceLang || !targetLang) {
-            // In a real app, you'd use a toast notification here
-            alert("Please fill in all fields.");
+            toast({
+                variant: 'destructive',
+                title: "Missing fields",
+                description: "Please fill in all fields.",
+            });
             return;
         }
         setIsConverting(true);
         setConvertedCode('');
-        const result = await convertCodeAction({ code: sourceCode, sourceLang, targetLang });
-        setConvertedCode(result);
-        setIsConverting(false);
+        try {
+            const result = await convertCodeAction({ code: sourceCode, sourceLanguage: sourceLang, targetLanguage: targetLang });
+            setConvertedCode(result.convertedCode);
+        } catch (error) {
+            console.error(error);
+            toast({
+                variant: 'destructive',
+                title: "AI Error",
+                description: "Failed to convert code. Please try again.",
+            });
+        } finally {
+            setIsConverting(false);
+        }
     };
 
     return (
@@ -51,7 +60,7 @@ export default function ConvertPage() {
                         <CardDescription>Enter the code you want to convert.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <Select onValueChange={setSourceLang}>
+                        <Select onValueChange={setSourceLang} value={sourceLang}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select Source Language" />
                             </SelectTrigger>
@@ -89,7 +98,7 @@ export default function ConvertPage() {
                             <CardDescription>The AI-generated code will appear here.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                             <Select onValueChange={setTargetLang}>
+                             <Select onValueChange={setTargetLang} value={targetLang}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select Target Language" />
                                 </SelectTrigger>

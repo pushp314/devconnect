@@ -1,26 +1,34 @@
+import { getUsers } from "@/app/actions/users";
 import { UserCard } from "@/components/user-card";
-import { Input } from "@/components/ui/input";
-import { mockUsers } from "@/lib/mock-data";
-import { Search } from "lucide-react";
+import { CommunitySearch } from "@/components/community-search";
+import type { User } from "@prisma/client";
 
-export default function CommunityPage() {
+export default async function CommunityPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const query =
+    typeof searchParams.query === "string" ? searchParams.query : undefined;
+  const users = (await getUsers({ query })) as User[];
+
   return (
     <div className="container py-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold font-headline mb-4">Community</h1>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input
-            placeholder="Search for developers..."
-            className="pl-10 max-w-sm"
-          />
+        <CommunitySearch />
+      </div>
+      {users.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {users.map((user) => (
+            <UserCard key={user.id} user={user} />
+          ))}
         </div>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {mockUsers.map((user) => (
-          <UserCard key={user.id} user={user} />
-        ))}
-      </div>
+      ) : (
+        <div className="text-center py-16 text-muted-foreground">
+          <p>No developers found.</p>
+        </div>
+      )}
     </div>
   );
 }

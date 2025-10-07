@@ -9,26 +9,17 @@ import {
 } from "@/components/ui/card";
 import { GitHubIcon, GoogleIcon } from "@/components/icons";
 import { Code } from "lucide-react";
-import { signIn } from "@/lib/auth";
+import { signIn } from "next-auth/react";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { SignInButton } from "@/components/auth/signin-button";
 
-function SignInButton({ provider, icon, children }: { provider: 'github' | 'google', icon: React.ReactNode, children: React.ReactNode }) {
-    return (
-        <form
-            action={async () => {
-                "use server";
-                await signIn(provider, { redirectTo: "/feed" });
-            }}
-        >
-            <Button type="submit" variant="outline" className="w-full h-12 text-base">
-                {icon}
-                {children}
-            </Button>
-        </form>
-    );
-}
+export default async function SignInPage() {
+  const session = await auth();
+  if (session?.user) {
+    redirect("/feed");
+  }
 
-
-export default function SignInPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md mx-auto shadow-xl">

@@ -18,12 +18,43 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    session({ session, user }) {
-      // Add the user ID to the session
+    async session({ session, user }) {
       if (session.user) {
         session.user.id = user.id;
+        
+        // Fetch the user from the database to get the username
+        const dbUser = await db.user.findUnique({
+          where: { id: user.id },
+        });
+        session.user.username = dbUser?.username ?? null;
       }
       return session;
+    },
+  },
+  events: {
+    createUser: async ({ user }) => {
+      if (user.email) {
+        // Create a unique username from the email
+        const username = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+        
+        // Check if username exists and append a random number if it does
+        let finalUsername = username;
+        let userExists = await db.user.findUnique({ where: { username: finalUsername } });
+        let attempts = 0;
+        while(userExists && attempts < 5) {
+            finalUsername = `${username}${Math.floor(Math.random() * 1000)}`;
+            userExists = await db.user.findUnique({ where: { username: finalUsername } });
+            attempts++;
+        }
+        if (userExists) { // Fallback for rare case of multiple collisions
+             finalUsername = `${username}-${Date.now()}`;
+        }
+
+        await db.user.update({
+          where: { id: user.id },
+          data: { username: finalUsername },
+        });
+      }
     },
   },
   secret: process.env.AUTH_SECRET,

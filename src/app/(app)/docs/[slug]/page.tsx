@@ -1,13 +1,11 @@
-import { mockDocs, mockUsers } from '@/lib/mock-data';
+import { getDocumentBySlug } from '@/app/actions/documents';
 import { notFound } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Bookmark, Heart, MessageCircle } from 'lucide-react';
 import { CodeBlock } from '@/components/code-block';
+import { DocInteraction } from '@/components/doc-interaction';
+import type { Document, User } from '@prisma/client';
 
-// This is a simplified markdown renderer.
-// In a real app, you'd use a more robust library like 'marked' or 'react-markdown'.
 const renderMarkdown = (markdown: string) => {
   const parts = markdown.split(/(```[\s\S]*?```)/);
   return parts.map((part, index) => {
@@ -33,12 +31,14 @@ const renderMarkdown = (markdown: string) => {
 };
 
 
-export default function DocPage({ params }: { params: { slug: string } }) {
-  const doc = mockDocs.find((d) => d.slug === params.slug);
+export default async function DocPage({ params }: { params: { slug: string } }) {
+  const doc = await getDocumentBySlug(params.slug);
 
   if (!doc) {
     notFound();
   }
+
+  const author = doc.author as User;
 
   return (
     <article className="container max-w-3xl mx-auto py-8">
@@ -49,13 +49,13 @@ export default function DocPage({ params }: { params: { slug: string } }) {
         <div className="flex items-center gap-4 text-muted-foreground">
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={doc.author.avatarUrl} alt={doc.author.name} data-ai-hint="person face" />
-              <AvatarFallback>{doc.author.name.charAt(0)}</AvatarFallback>
+              <AvatarImage src={author.image ?? undefined} alt={author.name ?? ''} data-ai-hint="person face" />
+              <AvatarFallback>{author.name?.charAt(0)}</AvatarFallback>
             </Avatar>
-            <span className="font-medium">{doc.author.name}</span>
+            <span className="font-medium">{author.name}</span>
           </div>
           <span>·</span>
-          <time dateTime={doc.createdAt}>{doc.createdAt}</time>
+          <time dateTime={doc.createdAt.toISOString()}>{doc.createdAt.toLocaleDateString()}</time>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
             {doc.tags.map((tag) => (
@@ -69,22 +69,7 @@ export default function DocPage({ params }: { params: { slug: string } }) {
       </div>
 
       <footer className="mt-12 pt-8 border-t">
-        <div className="flex justify-between items-center">
-            <div className="flex gap-1 text-muted-foreground">
-                <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                    <Heart className="h-4 w-4" />
-                    <span>{doc.likes}</span>
-                </Button>
-                <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                    <MessageCircle className="h-4 w-4" />
-                    <span>{doc.commentsCount}</span>
-                </Button>
-            </div>
-            <Button variant="outline" size="icon">
-                <Bookmark className="h-5 w-5" />
-                <span className="sr-only">Save</span>
-            </Button>
-        </div>
+        <DocInteraction doc={doc as Document} />
       </footer>
     </article>
   );

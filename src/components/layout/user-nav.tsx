@@ -1,3 +1,5 @@
+"use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,26 +13,25 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { User, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { signOut } from "next-auth/react";
+import { Skeleton } from "../ui/skeleton";
 
 export function UserNav() {
-  const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar-5');
+  const user = useCurrentUser();
 
-  // Mock user data, replace with actual session data
-  const user = {
-    name: "Jane Doe",
-    username: "jane.doe",
-    email: "jane.doe@example.com",
-    avatar: userAvatar?.imageUrl || "https://picsum.photos/seed/user-avatar/40/40",
-  };
-  const userInitials = user.name.split(' ').map(n => n[0]).join('');
+  if (!user) {
+    return <Skeleton className="h-9 w-9 rounded-full" />;
+  }
+
+  const userInitials = user.name?.split(' ').map(n => n[0]).join('') ?? '';
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={user.avatar} alt={`@${user.name}`} data-ai-hint="person face" />
+            <AvatarImage src={user.image ?? undefined} alt={`@${user.name}`} data-ai-hint="person face" />
             <AvatarFallback>{userInitials}</AvatarFallback>
           </Avatar>
         </Button>
@@ -60,7 +61,7 @@ export function UserNav() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => signOut()}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>

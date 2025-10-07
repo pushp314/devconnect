@@ -7,13 +7,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Code, Eye, Heart } from "lucide-react";
-import type { UIComponent } from "@/lib/types";
 import { LiveProvider, LiveError, LivePreview } from 'react-live';
 import { useTheme } from 'next-themes';
 import { Skeleton } from './ui/skeleton';
+import type { Component, User } from '@prisma/client';
 
 interface ComponentCardProps {
-  component: UIComponent;
+  component: Component & { author: User };
 }
 
 const reactLiveTheme = {
@@ -209,8 +209,8 @@ export function ComponentCard({ component }: ComponentCardProps) {
         <CardFooter className="flex justify-between items-center">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Avatar className="h-6 w-6">
-                    <AvatarImage src={component.author.avatarUrl} alt={component.author.name} data-ai-hint="person face" />
-                    <AvatarFallback>{component.author.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={component.author.image ?? undefined} alt={component.author.name ?? ''} data-ai-hint="person face" />
+                    <AvatarFallback>{component.author.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <span>{component.author.name}</span>
             </div>

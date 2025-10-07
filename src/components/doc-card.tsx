@@ -2,10 +2,16 @@ import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import type { Doc } from "@/lib/types";
+import type { Document as DocType, User, Like, Comment } from "@prisma/client";
+
+type PopulatedDoc = DocType & {
+  author: User;
+  likes: Like[];
+  comments: Comment[];
+}
 
 interface DocCardProps {
-  doc: Doc;
+  doc: PopulatedDoc;
 }
 
 export function DocCard({ doc }: DocCardProps) {
@@ -18,12 +24,12 @@ export function DocCard({ doc }: DocCardProps) {
           <CardTitle className="font-headline text-xl">{doc.title}</CardTitle>
           <CardDescription className="flex items-center gap-2 pt-2">
             <Avatar className="h-6 w-6">
-              <AvatarImage src={doc.author.avatarUrl} alt={doc.author.name} data-ai-hint="person face" />
-              <AvatarFallback>{doc.author.name.charAt(0)}</AvatarFallback>
+              <AvatarImage src={doc.author.image ?? undefined} alt={doc.author.name ?? ''} data-ai-hint="person face" />
+              <AvatarFallback>{doc.author.name?.charAt(0)}</AvatarFallback>
             </Avatar>
             <span>{doc.author.name}</span>
             <span className="mx-1">·</span>
-            <time dateTime={doc.createdAt}>{doc.createdAt}</time>
+            <time dateTime={doc.createdAt.toISOString()}>{doc.createdAt.toLocaleDateString()}</time>
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-grow">
