@@ -43,6 +43,7 @@ export function SnippetActionsMenu({ snippetId }: SnippetActionsMenuProps) {
         description: "Your snippet has been successfully deleted.",
       });
       setIsDeleteDialogOpen(false);
+      // The revalidation in the server action will refresh the feed
     } catch (error) {
       console.error(error);
       toast({
@@ -50,9 +51,8 @@ export function SnippetActionsMenu({ snippetId }: SnippetActionsMenuProps) {
         title: "Error",
         description: "Failed to delete snippet. Please try again.",
       });
-    } finally {
-      setIsDeleting(false);
-    }
+      setIsDeleting(false); // Ensure button is re-enabled on error
+    } 
   };
   
   return (

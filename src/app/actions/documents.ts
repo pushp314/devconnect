@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { createNotification } from './notifications';
+import { redirect } from 'next/navigation';
 
 const docSchema = z.object({
   title: z.string().min(5).max(100),
@@ -26,6 +27,11 @@ export async function createDocument(values: z.infer<typeof docSchema>) {
 
   const { title, slug, content, tags } = validatedFields.data;
 
+  const existingDoc = await db.document.findFirst({ where: { slug } });
+  if (existingDoc) {
+      throw new Error("A document with this slug already exists.");
+  }
+
   const newDoc = await db.document.create({
     data: {
       title,
@@ -42,6 +48,62 @@ export async function createDocument(values: z.infer<typeof docSchema>) {
   revalidatePath(`/profile/${session.user.username}`);
   return newDoc;
 }
+
+const updateDocSchema = docSchema.extend({
+    id: z.string(),
+});
+
+export async function updateDocument(values: z.infer<typeof updateDocSchema>) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error('You must be logged in to update a document.');
+  }
+
+  const validatedFields = updateDocSchema.safeParse(values);
+  if (!validatedFields.success) {
+    throw new Error('Invalid document data.');
+  }
+  
+  const { id, title, slug, content, tags } = validatedFields.data;
+  
+  const docToUpdate = await db.document.findUnique({ where: { id } });
+  if (!docToUpdate) throw new Error('Document not found.');
+  if (docToUpdate.authorId !== session.user.id) throw new Error('Unauthorized');
+
+  const updatedDoc = await db.document.update({
+    where: { id },
+    data: {
+      title,
+      slug,
+      content,
+      tags: { set: tags },
+    },
+  });
+  
+  revalidatePath(`/docs/${updatedDoc.slug}`);
+  revalidatePath('/docs');
+  revalidatePath(`/profile/${session.user.username}`);
+
+  return updatedDoc;
+}
+
+export async function deleteDocument(documentId: string) {
+    const session = await auth();
+    if (!session?.user?.id || !session.user.username) {
+        throw new Error('You must be logged in to delete a document.');
+    }
+
+    const docToDelete = await db.document.findUnique({ where: { id: documentId }});
+    if (!docToDelete) throw new Error('Document not found.');
+    if (docToDelete.authorId !== session.user.id) throw new Error('Unauthorized');
+
+    await db.document.delete({ where: { id: documentId } });
+    
+    revalidatePath('/docs');
+    revalidatePath(`/profile/${session.user.username}`);
+    redirect('/docs');
+}
+
 
 export async function getDocuments({ query }: { query?: string }) {
   return db.document.findMany({

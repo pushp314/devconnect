@@ -16,7 +16,7 @@ const snippetFormSchema = z.object({
 
 export async function createSnippet(values: z.infer<typeof snippetFormSchema>) {
   const session = await auth();
-  if (!session?.user?.id) {
+  if (!session?.user?.id || !session.user.username) {
     throw new Error('You must be logged in to create a snippet.');
   }
 
@@ -42,9 +42,57 @@ export async function createSnippet(values: z.infer<typeof snippetFormSchema>) {
   });
 
   revalidatePath('/feed');
-  revalidatePath(`/profile/${session.user.name}`);
+  revalidatePath(`/profile/${session.user.username}`);
   return snippet;
 }
+
+const updateSnippetFormSchema = snippetFormSchema.extend({
+    id: z.string(),
+});
+
+export async function updateSnippet(values: z.infer<typeof updateSnippetFormSchema>) {
+    const session = await auth();
+    if (!session?.user?.id || !session.user.username) {
+        throw new Error('You must be logged in to update a snippet.');
+    }
+
+    const validatedFields = updateSnippetFormSchema.safeParse(values);
+    if (!validatedFields.success) {
+        throw new Error('Invalid snippet data.');
+    }
+
+    const { id, title, description, language, code, tags } = validatedFields.data;
+
+    const snippetToUpdate = await db.snippet.findUnique({ where: { id } });
+    if (!snippetToUpdate) {
+        throw new Error('Snippet not found.');
+    }
+    if (snippetToUpdate.authorId !== session.user.id) {
+        throw new Error('You are not authorized to edit this snippet.');
+    }
+
+    const updatedSnippet = await db.snippet.update({
+        where: { id },
+        data: {
+            title,
+            description,
+            language,
+            code,
+            tags: { set: tags },
+        },
+    });
+
+    revalidatePath('/feed');
+    revalidatePath('/explore');
+    revalidatePath(`/profile/${session.user.username}`);
+    
+    return updatedSnippet;
+}
+
+export async function getSnippetById(id: string) {
+    return db.snippet.findUnique({ where: { id } });
+}
+
 
 export async function getSnippets({ page = 1, limit = 10, query, language, sortBy }: { page?: number; limit?: number; query?: string, language?: string, sortBy?: string }) {
     const whereClause: any = {};
@@ -162,7 +210,7 @@ export async function toggleSnippetSave(snippetId: string) {
 
 export async function deleteSnippet(snippetId: string) {
     const session = await auth();
-    if (!session?.user?.id) {
+    if (!session?.user?.id || !session.user.username) {
         throw new Error('You must be logged in to delete a snippet.');
     }
 

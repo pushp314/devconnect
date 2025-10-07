@@ -22,8 +22,9 @@ import { Loader2, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { aiSnippetTagging } from '@/ai/flows/ai-snippet-tagging';
 import { useState } from "react";
-import { createSnippet } from "@/app/actions/snippets";
+import { createSnippet, updateSnippet } from "@/app/actions/snippets";
 import { useRouter } from "next/navigation";
+import type { Snippet } from "@prisma/client";
 
 const languages = ["JavaScript", "TypeScript", "Python", "HTML", "CSS", "Go", "Rust", "Java", "C#"];
 
@@ -35,34 +36,49 @@ const formSchema = z.object({
   tags: z.array(z.string()).min(1, "Please add at least one tag.").max(10),
 });
 
-export function SnippetForm() {
+interface SnippetFormProps {
+    snippet?: Snippet;
+}
+
+export function SnippetForm({ snippet }: SnippetFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
+  const isEditMode = !!snippet;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      code: "",
-      tags: [],
+      title: snippet?.title || "",
+      description: snippet?.description || "",
+      language: snippet?.language || undefined,
+      code: snippet?.code || "",
+      tags: snippet?.tags || [],
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await createSnippet(values);
-      toast({
-        title: "Snippet Published!",
-        description: "Your new code snippet has been shared with the community.",
-      });
-      router.push('/feed');
+        if (isEditMode) {
+            await updateSnippet({ id: snippet.id, ...values });
+             toast({
+                title: "Snippet Updated!",
+                description: "Your snippet has been successfully updated.",
+            });
+            router.push('/feed'); // Or back to the snippet page
+        } else {
+            await createSnippet(values);
+            toast({
+                title: "Snippet Published!",
+                description: "Your new code snippet has been shared with the community.",
+            });
+            router.push('/feed');
+        }
     } catch (error) {
       console.error(error);
       toast({
         variant: "destructive",
-        title: "Error publishing snippet",
+        title: `Error ${isEditMode ? 'updating' : 'publishing'} snippet`,
         description: (error as Error).message,
       });
     }
@@ -90,7 +106,6 @@ export function SnippetForm() {
         title: "AI Error",
         description: "Failed to generate tags. Please try again.",
       });
-      console.error(error);
     } finally {
       setIsGenerating(false);
     }
@@ -99,8 +114,8 @@ export function SnippetForm() {
   return (
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline text-2xl">Share a New Snippet</CardTitle>
-          <CardDescription>Fill out the details below to share your code with the community.</CardDescription>
+          <CardTitle className="font-headline text-2xl">{isEditMode ? 'Edit Snippet' : 'Share a New Snippet'}</CardTitle>
+          <CardDescription>{isEditMode ? 'Update the details of your snippet.' : 'Fill out the details below to share your code with the community.'}</CardDescription>
         </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -203,7 +218,7 @@ export function SnippetForm() {
             <CardFooter>
               <Button type="submit" className="w-full md:w-auto" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting && <Loader2 className="animate-spin mr-2" />}
-                Publish Snippet
+                {isEditMode ? 'Save Changes' : 'Publish Snippet'}
               </Button>
             </CardFooter>
           </form>
