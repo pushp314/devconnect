@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import { createNotification } from './notifications';
 
 const docSchema = z.object({
   title: z.string().min(5).max(100),
@@ -89,10 +90,13 @@ export async function getDocumentBySlug(slug: string) {
 
 export async function toggleDocumentLike(documentId: string) {
     const session = await auth();
-    if (!session?.user?.id) {
+    if (!session?.user?.id || !session?.user?.name) {
         throw new Error('You must be logged in to like a document.');
     }
     
+    const doc = await db.document.findUnique({ where: { id: documentId }});
+    if (!doc) throw new Error('Document not found');
+
     const existingLike = await db.documentLike.findFirst({
         where: {
             documentId,
@@ -100,8 +104,6 @@ export async function toggleDocumentLike(documentId: string) {
         },
     });
 
-    const doc = await db.document.findUnique({ where: { id: documentId }});
-    if (!doc) throw new Error('Document not found');
 
     if (existingLike) {
         await db.documentLike.delete({ where: { id: existingLike.id } });
@@ -112,6 +114,14 @@ export async function toggleDocumentLike(documentId: string) {
                 userId: session.user.id,
             },
         });
+        if (session.user.id !== doc.authorId) {
+             await createNotification({
+                userId: doc.authorId,
+                type: 'LIKE',
+                message: `${session.user.name} liked your document: "${doc.title}"`,
+                link: `/docs/${doc.slug}`,
+            });
+        }
     }
     revalidatePath(`/docs/${doc.slug}`);
 }

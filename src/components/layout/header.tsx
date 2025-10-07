@@ -10,8 +10,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { NotificationBell } from "./notification-bell";
+import { auth } from "@/lib/auth";
 
-export function Header() {
+export async function Header() {
+  const session = await auth();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-screen-2xl items-center">
@@ -46,27 +50,28 @@ export function Header() {
         
         <div className="flex flex-1 items-center justify-end space-x-4">
           <nav className="flex items-center space-x-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button>
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Create
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuItem asChild>
-                  <Link href="/snippets/new">New Snippet</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/docs/new">New Document</Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {session?.user && (
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button>
+                      <PlusCircle className="h-4 w-4 mr-2" />
+                      Create
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuItem asChild>
+                      <Link href="/snippets/new">New Snippet</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/docs/new">New Document</Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-            <Button variant="ghost" size="icon">
-              <Bell className="h-5 w-5" />
-              <span className="sr-only">Notifications</span>
-            </Button>
+                <NotificationBell />
+              </>
+            )}
 
             <UserNav />
           </nav>

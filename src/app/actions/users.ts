@@ -4,13 +4,36 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { createNotification } from './notifications';
+import type { User, Snippet, Document, Like, Comment, SavedSnippet, DocumentSave } from '@prisma/client';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
   bio: z.string().max(200, 'Bio must be less than 200 characters.').optional(),
-  github: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
-  twitter: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
+  githubUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
+  twitterUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
 });
+
+type PopulatedSnippetForProfile = Snippet & {
+  author: User;
+  likes: Like[];
+  comments: Comment[];
+};
+
+type PopulatedDocForProfile = Document & {
+    author: User;
+    likes: DocumentLike[];
+    comments: DocumentComment[];
+};
+
+type UserProfile = User & {
+    snippets: (Snippet & { likes: Like[], comments: Comment[] })[];
+    documents: (Document & { likes: DocumentLike[], comments: DocumentComment[] })[];
+    followers: Follows[];
+    following: Follows[];
+    savedSnippets: (SavedSnippet & { snippet: PopulatedSnippetForProfile })[];
+    savedDocuments: (DocumentSave & { document: PopulatedDocForProfile })[];
+}
 
 export async function getUserProfile(username: string) {
   const session = await auth();
@@ -87,7 +110,7 @@ export async function getUserProfile(username: string) {
 
 export async function toggleFollow(targetUserId: string) {
   const session = await auth();
-  if (!session?.user?.id) {
+  if (!session?.user?.id || !session.user.name || !session.user.username) {
     throw new Error('You must be logged in to follow a user.');
   }
 
@@ -107,7 +130,7 @@ export async function toggleFollow(targetUserId: string) {
   });
 
   const targetUser = await db.user.findUnique({ where: { id: targetUserId } });
-  if (!targetUser) throw new Error('Target user not found');
+  if (!targetUser || !targetUser.username) throw new Error('Target user not found');
 
   if (existingFollow) {
     await db.follows.delete({
@@ -125,6 +148,13 @@ export async function toggleFollow(targetUserId: string) {
         followingId: targetUserId,
       },
     });
+    // Create a notification for the user who is being followed
+    await createNotification({
+        userId: targetUserId,
+        type: 'FOLLOW',
+        message: `${session.user.name} started following you.`,
+        link: `/profile/${session.user.username}`,
+    });
   }
   revalidatePath(`/profile/${targetUser.username}`);
 }
@@ -140,15 +170,15 @@ export async function updateUserProfile(values: z.infer<typeof profileSchema>) {
       throw new Error("Invalid profile data.");
   }
 
-  const { name, bio, github, twitter } = validatedFields.data;
+  const { name, bio, githubUrl, twitterUrl } = validatedFields.data;
 
   const updatedUser = await db.user.update({
     where: { id: session.user.id },
     data: {
       name,
       bio: bio ?? null,
-      githubUrl: github ?? null,
-      twitterUrl: twitter ?? null,
+      githubUrl: githubUrl ?? null,
+      twitterUrl: twitterUrl ?? null,
     },
   });
 
@@ -193,6 +223,7 @@ export async function getSavedItems() {
                     author: true,
                     likes: true,
                     comments: true,
+                    savedBy: true,
                 }
             }
         },
@@ -213,11 +244,16 @@ export async function getSavedItems() {
         orderBy: { createdAt: 'desc' }
     });
 
-    const populatedSnippets = savedSnippets.map(s => ({
-        ...s.snippet,
-        likesCount: s.snippet.likes.length,
-        commentsCount: s.snippet.comments.length,
-    }));
+    const populatedSnippets = savedSnippets.map(s => {
+        const snippet = s.snippet;
+        return {
+            ...snippet,
+            likesCount: snippet.likes.length,
+            commentsCount: snippet.comments.length,
+            isLiked: !!snippet.likes.find(like => like.userId === session.user?.id),
+            isSaved: !!snippet.savedBy.find(save => save.userId === session.user?.id),
+        }
+    });
     
     const populatedDocs = savedDocuments.map(d => ({
         ...d.document,

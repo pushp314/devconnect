@@ -3,11 +3,21 @@
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
+import type { Notification } from '@prisma/client';
+
+export async function createNotification(data: Omit<Notification, 'id' | 'read' | 'createdAt'>) {
+    await db.notification.create({
+        data,
+    });
+    revalidatePath('/layout'); // Revalidate layout to update header
+}
+
 
 export async function getNotifications() {
   const session = await auth();
   if (!session?.user?.id) {
-    throw new Error('You must be logged in to view notifications.');
+    // Return empty array if not logged in, as this is called by a server component
+    return [];
   }
 
   return db.notification.findMany({
@@ -15,6 +25,7 @@ export async function getNotifications() {
       userId: session.user.id,
     },
     orderBy: { createdAt: 'desc' },
+    take: 10, // Limit to 10 recent notifications
   });
 }
 
@@ -29,5 +40,5 @@ export async function markAsRead(notificationId: string) {
     data: { read: true },
   });
 
-  revalidatePath('/notifications'); // Or wherever notifications are displayed
+  revalidatePath('/layout'); // Revalidate layout to update header
 }

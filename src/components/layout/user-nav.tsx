@@ -16,12 +16,22 @@ import Link from "next/link";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { signOut } from "next-auth/react";
 import { Skeleton } from "../ui/skeleton";
+import { useSession } from "next-auth/react";
 
 export function UserNav() {
-  const user = useCurrentUser();
+  const { data: session, status } = useSession();
+  const user = session?.user;
 
-  if (!user) {
+  if (status === "loading") {
     return <Skeleton className="h-9 w-9 rounded-full" />;
+  }
+  
+  if (!user) {
+    return (
+        <Button asChild>
+            <Link href="/auth/signin">Sign In</Link>
+        </Button>
+    )
   }
 
   const userInitials = user.name?.split(' ').map(n => n[0]).join('') ?? '';
