@@ -86,7 +86,7 @@ export async function getSnippets({ page = 1, limit = 10, query, language, sortB
         ...snippet,
         likesCount: snippet.likes.length,
         commentsCount: snippet.comments.length,
-        isLiked: session?.user?.id ? !!snippet.likes.find(like => like.userId === session?.user.id) : false,
+        isLiked: session?.user?.id ? !!snippet.likes.find(like => like.userId === session.user.id) : false,
         isSaved: session?.user?.id ? !!snippet.savedBy.find(save => save.userId === session.user.id) : false,
     }));
 }
@@ -158,4 +158,31 @@ export async function toggleSnippetSave(snippetId: string) {
     revalidatePath('/feed');
     revalidatePath('/explore');
     revalidatePath('/saved');
+}
+
+export async function deleteSnippet(snippetId: string) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        throw new Error('You must be logged in to delete a snippet.');
+    }
+
+    const snippet = await db.snippet.findUnique({
+        where: { id: snippetId },
+    });
+
+    if (!snippet) {
+        throw new Error('Snippet not found.');
+    }
+
+    if (snippet.authorId !== session.user.id) {
+        throw new Error('You are not authorized to delete this snippet.');
+    }
+
+    await db.snippet.delete({
+        where: { id: snippetId },
+    });
+    
+    revalidatePath('/feed');
+    revalidatePath('/explore');
+    revalidatePath(`/profile/${session.user.username}`);
 }

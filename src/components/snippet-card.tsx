@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { CodeBlock } from "./code-block";
 import type { Snippet, User, Like, Comment } from "@prisma/client";
 import { SnippetInteraction } from "./snippet-interaction";
+import { auth } from "@/lib/auth";
+import { SnippetActionsMenu } from "./snippet-actions-menu";
 
 type PopulatedSnippet = Snippet & {
   author: User;
@@ -20,7 +22,10 @@ interface SnippetCardProps {
   snippet: PopulatedSnippet;
 }
 
-export function SnippetCard({ snippet }: SnippetCardProps) {
+export async function SnippetCard({ snippet }: SnippetCardProps) {
+  const session = await auth();
+  const isAuthor = session?.user?.id === snippet.authorId;
+
   return (
     <Card className="overflow-hidden transition-all hover:shadow-lg hover:border-primary/50 flex flex-col">
       <CardHeader className="flex flex-row items-start gap-4 space-y-0">
@@ -38,6 +43,7 @@ export function SnippetCard({ snippet }: SnippetCardProps) {
             <time dateTime={snippet.createdAt.toISOString()}>{snippet.createdAt.toLocaleDateString()}</time>
           </div>
         </div>
+         {isAuthor && <SnippetActionsMenu snippetId={snippet.id} />}
       </CardHeader>
       <CardContent className="space-y-4 flex-grow">
         <p className="text-sm">{snippet.description}</p>
