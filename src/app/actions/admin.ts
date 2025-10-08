@@ -3,6 +3,8 @@
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { Role } from '@prisma/client';
+import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 
 async function verifyAdmin() {
     const session = await auth();
@@ -36,4 +38,35 @@ export async function getAdminDashboardAnalytics() {
         pendingComponents,
         totalUsers,
     }
+}
+
+export async function getUsersForAdmin() {
+    await verifyAdmin();
+    return db.user.findMany({
+        orderBy: {
+            createdAt: 'desc',
+        },
+    });
+}
+
+const updateUserRoleSchema = z.object({
+    userId: z.string(),
+    role: z.nativeEnum(Role),
+});
+
+export async function updateUserRole(values: z.infer<typeof updateUserRoleSchema>) {
+    await verifyAdmin();
+    
+    const validatedFields = updateUserRoleSchema.safeParse(values);
+    if (!validatedFields.success) {
+        throw new Error("Invalid input.");
+    }
+    const { userId, role } = validatedFields.data;
+
+    await db.user.update({
+        where: { id: userId },
+        data: { role },
+    });
+
+    revalidatePath('/admin/users');
 }
