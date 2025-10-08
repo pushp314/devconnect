@@ -114,6 +114,7 @@ export async function getUserProfile(username: string) {
     orderBy: { createdAt: 'desc' },
     include: {
       author: { select: { name: true, image: true, username: true } },
+      likes: { select: { userId: true } },
       _count: { select: { likes: true, comments: true } },
     },
   });
@@ -137,6 +138,7 @@ export async function getUserProfile(username: string) {
       document: {
         include: {
           author: { select: { name: true, image: true, username: true } },
+           likes: { select: { userId: true } },
           _count: { select: { likes: true, comments: true } },
         },
       },
@@ -338,6 +340,8 @@ export async function getSavedItems() {
             document: {
                 include: {
                     author: { select: { name: true, image: true, username: true } },
+                    likes: { select: { userId: true } },
+                    savedBy: { select: { userId: true } },
                     _count: { select: { likes: true, comments: true } },
                 }
             }
@@ -356,11 +360,15 @@ export async function getSavedItems() {
         }
     });
     
-    const populatedDocs = savedDocuments.map(d => ({
-        ...d.document,
-        likesCount: d.document._count.likes,
-        commentsCount: d.document._count.comments,
-    }));
+    const populatedDocs = savedDocuments.map(d => {
+        const doc = d.document;
+        return {
+        ...doc,
+        likesCount: doc._count.likes,
+        commentsCount: doc._count.comments,
+        isLiked: !!doc.likes.find(like => like.userId === session.user?.id),
+        isSaved: !!doc.savedBy.find(save => save.userId === session.user?.id),
+    }});
 
     return { savedSnippets: populatedSnippets, savedDocuments: populatedDocs };
 }
@@ -581,3 +589,5 @@ export async function getBlockedUsers() {
 
     return blocks.map(b => b.blocked);
 }
+
+    
