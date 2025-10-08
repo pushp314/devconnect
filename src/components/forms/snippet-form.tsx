@@ -26,7 +26,7 @@ import { createSnippet, updateSnippet } from "@/app/actions/snippets";
 import { useRouter } from "next/navigation";
 import type { Snippet } from "@prisma/client";
 
-const languages = ["JavaScript", "TypeScript", "Python", "HTML", "CSS", "Go", "Rust", "Java", "C#"];
+const languages = ["JavaScript", "TypeScript"];
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters.").max(100),
@@ -115,7 +115,7 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-2xl">{isEditMode ? 'Edit Snippet' : 'Share a New Snippet'}</CardTitle>
-          <CardDescription>{isEditMode ? 'Update the details of your snippet.' : 'Fill out the details below to share your code with the community.'}</CardDescription>
+          <CardDescription>{isEditMode ? 'Update the details of your snippet.' : 'Share a preview-able React snippet with the community.'}</CardDescription>
         </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -167,6 +167,9 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
                         ))}
                       </SelectContent>
                     </Select>
+                     <FormDescription>
+                      Only languages that can be rendered as React components are available.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -179,11 +182,14 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
                     <FormLabel>Code</FormLabel>
                     <FormControl>
                        <Textarea
-                        placeholder="Paste your code here."
+                        placeholder="() => <Button>Hello World</Button>"
                         className="font-code min-h-[200px]"
                         {...field}
                       />
                     </FormControl>
+                    <FormDescription>
+                      Your code must be a valid React component function.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
