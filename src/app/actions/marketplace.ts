@@ -5,6 +5,7 @@ import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import type { Component, User } from '@prisma/client';
 import { z } from 'zod';
+import { notFound } from 'next/navigation';
 
 export type PopulatedMarketplaceComponent = Component & {
     creator: User
@@ -28,6 +29,21 @@ export async function getMarketplaceComponents({ query }: { query?: string }) {
     },
   });
   return components as PopulatedMarketplaceComponent[];
+}
+
+export async function getMarketplaceComponentById(id: string) {
+    const component = await db.component.findUnique({
+        where: { id, status: 'approved' },
+        include: {
+            creator: true,
+        },
+    });
+
+    if (!component) {
+        notFound();
+    }
+    
+    return component as PopulatedMarketplaceComponent;
 }
 
 
