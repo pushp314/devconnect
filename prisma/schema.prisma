@@ -117,7 +117,7 @@ model Follows {
 
 model Snippet {
   id          String   @id @default(cuid())
-  title       String
+  title       String   @unique
   description String
   language    String
   code        String   @db.Text
