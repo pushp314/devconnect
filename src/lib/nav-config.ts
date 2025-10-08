@@ -11,6 +11,7 @@ import {
   Replace,
   User,
   ShoppingBag,
+  ShieldCheck,
 } from 'lucide-react';
 
 export const navSections = [
@@ -19,7 +20,6 @@ export const navSections = [
     items: [
       { label: 'Feed', href: '/feed', icon: Home },
       { label: 'Explore', href: '/explore', icon: Compass },
-      { label: 'Component Library', href: '/components', icon: SquareCode },
       { label: 'Docs', href: '/docs', icon: BookOpen },
       { label: 'Community', href: '/community', icon: Users },
       { label: 'Marketplace', href: '/components-marketplace', icon: ShoppingBag },
@@ -39,6 +39,7 @@ export const navSections = [
       { label: 'Profile', href: `/profile/me`, icon: User },
       { label: 'Saved', href: '/saved', icon: Bookmark },
       { label: 'Settings', href: '/settings', icon: Settings },
+      { label: 'Admin', href: '/admin/components', icon: ShieldCheck },
     ],
   },
 ];

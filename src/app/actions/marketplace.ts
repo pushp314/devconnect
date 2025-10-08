@@ -34,12 +34,13 @@ export async function getMarketplaceComponents({ query }: { query?: string }) {
 export async function getMarketplaceComponentById(id: string) {
     const session = await auth();
     const component = await db.component.findUnique({
-        where: { id }, // Allow viewing pending components if you have the link
+        where: { id },
         include: {
             creator: true,
         },
     });
 
+    // Only allow viewing if approved, or if the viewer is the creator
     if (!component || (component.status !== 'approved' && component.creatorId !== session?.user?.id)) {
         notFound();
     }
@@ -78,7 +79,7 @@ export async function uploadComponent(values: z.infer<typeof uploadComponentSche
             price,
             tags,
             previewUrls,
-            zipFileUrl,
+            zipFileUrl, // This should be zipFileUrl based on the previous implementation
             creatorId: session.user.id,
             status: 'pending',
         }
@@ -103,7 +104,8 @@ export async function createOrder({
   const component = await db.component.findUnique({ where: { id: componentId } });
   if (!component) throw new Error('Component not found');
 
-  if (component.price !== amount) {
+  // For paid components, verify the price matches.
+  if (component.price > 0 && component.price !== amount) {
     throw new Error('Price mismatch detected.');
   }
 
@@ -145,11 +147,12 @@ export async function downloadFreeComponent(componentId: string) {
     }
 
     // Check if already "purchased"
-    const existingOrder = await db.order.findFirst({
-        where: { userId: session.user.id, componentId: componentId }
+    const user = await db.user.findUnique({
+        where: { id: session.user.id },
+        select: { purchasedComponentIds: true }
     });
 
-    if (!existingOrder) {
+    if (!user?.purchasedComponentIds.includes(componentId)) {
         await createOrder({ componentId, amount: 0 });
     }
 
@@ -163,18 +166,26 @@ export async function getPurchasedComponentsForUser() {
     if (!session?.user?.id) {
         return [];
     }
+    
+    const user = await db.user.findUnique({
+        where: { id: session.user.id },
+        select: { purchasedComponentIds: true }
+    });
 
-    const orders = await db.order.findMany({
-        where: { userId: session.user.id },
-        include: {
-            component: true,
+    if (!user?.purchasedComponentIds || user.purchasedComponentIds.length === 0) {
+        return [];
+    }
+
+    return db.component.findMany({
+        where: {
+            id: {
+                in: user.purchasedComponentIds
+            }
         },
         orderBy: {
             createdAt: 'desc'
         }
     });
-
-    return orders.map(order => order.component);
 }
 
 export async function getUploadedComponentsForUser() {
@@ -189,4 +200,43 @@ export async function getUploadedComponentsForUser() {
             createdAt: 'desc'
         }
     });
+}
+
+
+// --- Admin Actions ---
+export async function getPendingComponents() {
+  const session = await auth();
+  // In a real app, you'd check for an admin role here
+  if (!session?.user) {
+    throw new Error("Unauthorized");
+  }
+
+  return db.component.findMany({
+    where: { status: "pending" },
+    include: { creator: true },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
+async function updateComponentStatus(componentId: string, status: "approved" | "rejected") {
+    const session = await auth();
+    // In a real app, you'd check for an admin role here
+    if (!session?.user) {
+      throw new Error("Unauthorized");
+    }
+
+    await db.component.update({
+        where: { id: componentId },
+        data: { status },
+    });
+    revalidatePath('/admin/components');
+    revalidatePath('/components-marketplace');
+}
+
+export async function approveComponent(componentId: string) {
+    await updateComponentStatus(componentId, 'approved');
+}
+
+export async function rejectComponent(componentId: string) {
+    await updateComponentStatus(componentId, 'rejected');
 }
