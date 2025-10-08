@@ -255,7 +255,7 @@ export async function getUsers({ query }: { query?: string }) {
         : undefined,
     },
     orderBy: {
-      createdAt: 'desc',
+      name: 'asc',
     },
   });
 }
