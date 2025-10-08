@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Copy } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 interface CodeBlockProps {
   code: string;
@@ -12,12 +13,13 @@ interface CodeBlockProps {
 
 export function CodeBlock({ code, language }: CodeBlockProps) {
   const [mounted, setMounted] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => setMounted(true), []);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
-    // You can add a toast notification here to indicate success
+    toast({ title: "Code Copied!", description: "The code has been copied to your clipboard." });
   };
 
   if (!mounted) {
@@ -51,5 +53,3 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
         <span className="sr-only">Copy code</span>
       </Button>
     </div>
-  );
-}

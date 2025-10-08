@@ -8,22 +8,11 @@ import {
   Bookmark,
   Code,
   Bug,
-  PlusCircle,
-  FileText,
-  User,
-  Github,
-  GitFork,
   Replace,
+  User,
 } from 'lucide-react';
 
 export const navSections = [
-  {
-    title: 'Create',
-    items: [
-      { label: 'New Snippet', href: '/snippets/new', icon: PlusCircle },
-      { label: 'New Document', href: '/docs/new', icon: FileText },
-    ],
-  },
   {
     title: 'Discover',
     items: [
@@ -45,8 +34,6 @@ export const navSections = [
   {
     title: 'Personal',
     items: [
+      { label: 'Profile', href: `/profile/me`, icon: User },
       { label: 'Saved', href: '/saved', icon: Bookmark },
-      { label: 'Settings', href: '/settings', icon: Settings },
-    ],
-  },
-];
+      { label: 'Settings', href:

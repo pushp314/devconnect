@@ -12,7 +12,8 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { DeleteDocButton } from '@/components/delete-doc-button';
 
 const renderMarkdown = (markdown: string) => {
-  const parts = markdown.split(/(```(?:\w+\n)?[\s\S]*?```)/);
+  const parts = markdown.split(/(```[\s\S]*?```|`[^`]*?`)/g);
+
   return parts.map((part, index) => {
     if (part.startsWith('```')) {
       const codeMatch = part.match(/```(\w+)?\n([\s\S]+)```/);
@@ -23,27 +24,20 @@ const renderMarkdown = (markdown: string) => {
       }
     }
     
-    // Process non-code parts
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return <code key={index} className="bg-muted text-foreground font-code px-1 py-0.5 rounded-sm">{part.slice(1, -1)}</code>;
+    }
+
     return part.split('\n').map((line, lineIndex) => {
-      // Skip empty lines that are just whitespace
-      if (line.trim() === '') {
-        return <br key={`${index}-${lineIndex}`} />;
-      }
-      if (line.startsWith('# ')) {
-        return <h1 key={`${index}-${lineIndex}`} className="text-4xl font-extrabold font-headline mt-10 mb-4 pb-2 border-b">{line.substring(2)}</h1>;
-      }
-      if (line.startsWith('## ')) {
-        return <h2 key={`${index}-${lineIndex}`} className="text-3xl font-bold font-headline mt-8 mb-4">{line.substring(3)}</h2>;
-      }
-      if (line.startsWith('### ')) {
-        return <h3 key={`${index}-${lineIndex}`} className="text-2xl font-bold font-headline mt-6 mb-3">{line.substring(4)}</h3>;
-      }
-      // Only render non-empty lines as paragraphs
+      if (line.trim() === '') return <div key={`${index}-${lineIndex}`} className="h-4" />;
+      if (line.startsWith('# ')) return <h1 key={`${index}-${lineIndex}`} className="text-4xl font-extrabold font-headline mt-10 mb-4 pb-2 border-b">{line.substring(2)}</h1>;
+      if (line.startsWith('## ')) return <h2 key={`${index}-${lineIndex}`} className="text-3xl font-bold font-headline mt-8 mb-4">{line.substring(3)}</h2>;
+      if (line.startsWith('### ')) return <h3 key={`${index}-${lineIndex}`} className="text-2xl font-bold font-headline mt-6 mb-3">{line.substring(4)}</h3>;
+      if (line.startsWith('- ')) return <li key={`${index}-${lineIndex}`} className="ml-6 list-disc">{line.substring(2)}</li>
       return <p key={`${index}-${lineIndex}`} className="my-4 leading-relaxed text-lg">{line}</p>;
     });
   });
 };
-
 
 export default async function DocPage({ params }: { params: { slug: string } }) {
   const session = await auth();
@@ -64,7 +58,7 @@ export default async function DocPage({ params }: { params: { slug: string } }) 
                 <Badge key={tag} variant="secondary" className="text-sm">{tag}</Badge>
             ))}
         </div>
-        <h1 className="text-5xl font-extrabold font-headline tracking-tight lg:text-6xl mb-4">
+        <h1 className="text-5xl font-extrabold font-headline tracking-tight lg:text-6xl mb-4 text-center">
           {doc.title}
         </h1>
         <div className="flex items-center justify-center gap-4 text-muted-foreground mt-6">
