@@ -47,17 +47,17 @@ export function DesktopSidebar() {
                               if ((link.label === 'Dashboard' || link.href === '/dashboard/components') && !user) return null;
                               if ((link.label === 'Settings' || link.href === '/settings') && !user) return null;
 
-                              const isActive = link.href.startsWith('/marketplace')
-                                ? pathname.startsWith(link.href)
-                                : pathname === href;
+                              const isActive = pathname.startsWith(link.href);
+                              const isMarketplace = link.label === 'Marketplace';
 
                               return (
                                 <Link
                                   key={link.href}
                                   href={href}
                                   className={cn(
-                                  'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
-                                  isActive && 'text-primary bg-muted'
+                                    'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
+                                    isActive && 'text-primary bg-muted',
+                                    isMarketplace && 'bg-primary/5 border border-primary/20 text-primary hover:bg-primary/10'
                                   )}
                                 >
                                   <link.icon className="h-4 w-4" />
