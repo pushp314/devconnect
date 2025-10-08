@@ -66,6 +66,9 @@ export async function Header() {
                     <DropdownMenuItem asChild>
                       <Link href="/docs/new">New Document</Link>
                     </DropdownMenuItem>
+                     <DropdownMenuItem asChild>
+                      <Link href="/bugs">Report a Bug</Link>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
