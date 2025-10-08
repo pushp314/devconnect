@@ -14,13 +14,6 @@ async function main() {
       username: 'pushprajsharma',
       image: 'https://lh3.googleusercontent.com/a/ACg8ocKAaiDrkrfvu3C6GFOJ_36ICnQRa8xaU9PeyNs_B5MWDL0aKNq1=s96-c',
       bio: 'Administrator and lead developer of CodeStudio.',
-    },
-    {
-      email: 'newadmin@example.com',
-      name: 'Jane Doe',
-      username: 'janedoe',
-      image: 'https://i.pravatar.cc/150?u=janedoe',
-      bio: 'Community Manager and Administrator.',
     }
   ];
 
