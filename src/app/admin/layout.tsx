@@ -1,23 +1,4 @@
-import Link from "next/link";
-import { cn } from "@/lib/utils";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
 import { AdminSidebarNav } from "./_components/admin-sidebar-nav";
-
-const adminNavItems = [
-    {
-        title: "Dashboard",
-        href: "/admin",
-        icon: "LayoutDashboard",
-    },
-    {
-        title: "Approvals",
-        href: "/admin/components",
-        icon: "ShieldCheck",
-    },
-];
 
 export default function AdminLayout({
   children,
@@ -29,7 +10,7 @@ export default function AdminLayout({
         <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8">
             <aside>
                 <h2 className="text-lg font-semibold font-headline mb-4">Admin Menu</h2>
-                <AdminSidebarNav items={adminNavItems} />
+                <AdminSidebarNav />
             </aside>
             <main>
                 {children}

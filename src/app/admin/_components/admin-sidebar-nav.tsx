@@ -7,28 +7,27 @@ import { Button } from "@/components/ui/button";
 import { LayoutDashboard, ShieldCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-const icons: { [key: string]: LucideIcon } = {
-    LayoutDashboard,
-    ShieldCheck,
-};
+// Define navigation items directly inside the client component
+const adminNavItems = [
+    {
+        title: "Dashboard",
+        href: "/admin",
+        icon: LayoutDashboard,
+    },
+    {
+        title: "Approvals",
+        href: "/admin/components",
+        icon: ShieldCheck,
+    },
+];
 
-interface AdminSidebarNavProps {
-    items: {
-        title: string;
-        href: string;
-        icon: string;
-    }[];
-}
-
-export function AdminSidebarNav({ items }: AdminSidebarNavProps) {
+export function AdminSidebarNav() {
     const pathname = usePathname();
 
     return (
         <nav className="flex flex-col gap-2">
-            {items.map((item) => {
-                const Icon = icons[item.icon];
-                if (!Icon) return null;
-
+            {adminNavItems.map((item) => {
+                const Icon = item.icon;
                 return (
                     <Link key={item.href} href={item.href}>
                         <Button

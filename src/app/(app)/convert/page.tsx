@@ -11,25 +11,13 @@ import { ArrowRight, Loader2 } from 'lucide-react';
 import { CodeBlock } from '@/components/code-block';
 import { convertCodeAction } from '@/app/actions/ai';
 import { useToast } from '@/hooks/use-toast';
+import { Highlight, themes } from 'prism-react-renderer';
 
 const languageSuggestions = {
     "Web": ["JavaScript", "TypeScript", "HTML", "CSS"],
     "Mobile": ["Kotlin", "Swift"],
     "Backend": ["Python", "Java", "Go", "Rust", "C#", "PHP"],
     "Database": ["SQL"],
-};
-
-const reactLiveTheme = {
-  light: {
-    plain: { color: '#393A34', backgroundColor: '#f6f8fa' },
-    styles: [ { types: ['comment', 'prolog', 'doctype', 'cdata'], style: { color: '#999988', fontStyle: 'italic' } }, { types: ['namespace'], style: { opacity: 0.7 } }, { types: ['string', 'attr-value'], style: { color: '#e3116c' } }, { types: ['punctuation', 'operator'], style: { color: '#393A34' } }, { types: [ 'entity', 'url', 'symbol', 'number', 'boolean', 'variable', 'constant', 'property', 'regex', 'inserted', ], style: { color: '#36acaa' } }, { types: ['at-rule', 'keyword', 'attr-name', 'selector'], style: { color: '#00a4db' } }, { types: ['function', 'deleted', 'tag'], style: { color: '#d73a49' } }, { types: ['function-variable'], style: { color: '#6f42c1' } }, { types: ['tag', 'selector', 'keyword'], style: { color: '#00009f' } },
-    ],
-  },
-  dark: {
-    plain: { color: "#F8F8F2", backgroundColor: "#282A36" },
-    styles: [ { types: ["prolog", "constant", "symbol"], style: { color: "rgb(189, 147, 249)" } }, { types: ["builtin", "char", "inserted", "selector", "attr-name"], style: { color: "rgb(80, 250, 123)" } }, { types: ["comment"], style: { color: "rgb(98, 114, 164)", fontStyle: "italic" } }, { types: ["string", "url"], style: { color: "rgb(241, 250, 140)" } }, { types: ["variable"], style: { color: "rgb(255, 184, 108)" } }, { types: ["number", "boolean"], style: { color: "rgb(189, 147, 249)" } }, { types: ["punctuation"], style: { color: "rgb(248, 248, 242)" } }, { types: ["function", "class-name"], style: { color: "rgb(255, 121, 198)" } }, { types: ["tag"], style: { color: "rgb(255, 121, 198)" } }, { types: ["operator", "entity"], style: { color: "rgb(248, 248, 242)" } }, { types: ["keyword"], style: { color: "rgb(255, 121, 198)" } }
-    ]
-  }
 };
 
 export default function ConvertPage() {
@@ -40,6 +28,8 @@ export default function ConvertPage() {
     const [isConverting, setIsConverting] = useState(false);
     const { toast } = useToast();
     const { theme } = useTheme();
+    
+    const prismTheme = theme === 'dark' ? themes.vsDark : themes.vsLight;
 
     const handleConvert = async () => {
         if (!sourceCode || !sourceLang || !targetLang) {
@@ -74,7 +64,7 @@ export default function ConvertPage() {
                 <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">Translate code snippets from one programming language to another using the power of generative AI.</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-4 items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-8 items-stretch">
                 {/* Source Column */}
                 <Card className="flex flex-col">
                     <CardHeader>
@@ -98,14 +88,21 @@ export default function ConvertPage() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="flex-1 flex flex-col min-h-[420px] relative">
-                         <LiveEditor
-                            value={sourceCode}
-                            onValueChange={setSourceCode}
-                            theme={theme === 'dark' ? reactLiveTheme.dark : reactLiveTheme.light}
-                            className="absolute inset-0 font-code text-sm !bg-transparent p-4 rounded-md border"
-                            style={{fontFamily: '"Source Code Pro", monospace'}}
-                            padding={16}
-                        />
+                         <Highlight
+                            theme={prismTheme}
+                            code={sourceCode}
+                            language={sourceLang.toLowerCase() || "plaintext"}
+                            >
+                            {({ className, style, tokens, getLineProps, getTokenProps }) => (
+                                <LiveEditor
+                                    value={sourceCode}
+                                    onValueChange={setSourceCode}
+                                    className="absolute inset-0 font-code text-sm !bg-transparent p-4 rounded-md border"
+                                    style={{...style, fontFamily: '"Source Code Pro", monospace'}}
+                                    padding={16}
+                                />
+                            )}
+                        </Highlight>
                     </CardContent>
                 </Card>
 
@@ -115,7 +112,7 @@ export default function ConvertPage() {
                         size="lg"
                         onClick={handleConvert} 
                         disabled={isConverting || !sourceCode || !sourceLang || !targetLang} 
-                        className="rounded-full w-20 h-20 text-lg"
+                        className="rounded-full w-24 h-24 text-lg"
                     >
                         {isConverting ? (
                             <Loader2 className="h-8 w-8 animate-spin" />
@@ -169,5 +166,5 @@ export default function ConvertPage() {
                 </Card>
             </div>
         </div>
-    );
+    ];
 }
