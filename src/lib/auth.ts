@@ -1,3 +1,4 @@
+
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "@/lib/db";
@@ -27,6 +28,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = user.id;
         session.user.username = dbUser?.username ?? null;
         session.user.role = dbUser?.role ?? 'USER';
+        session.user.isBlocked = dbUser?.isBlocked ?? false;
         (session.user as any).purchasedComponentIds = dbUser?.purchasedComponentIds ?? [];
 
       }

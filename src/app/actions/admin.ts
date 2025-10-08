@@ -11,6 +11,7 @@ async function verifyAdmin() {
     if (!session?.user || session.user.role !== Role.ADMIN) {
         throw new Error("Unauthorized");
     }
+    return session.user;
 }
 
 export async function getAdminDashboardAnalytics() {
@@ -69,4 +70,31 @@ export async function updateUserRole(values: z.infer<typeof updateUserRoleSchema
     });
 
     revalidatePath('/admin/users');
+}
+
+
+const updateUserStatusSchema = z.object({
+  userId: z.string(),
+  isBlocked: z.boolean(),
+});
+
+export async function updateUserStatus(values: z.infer<typeof updateUserStatusSchema>) {
+  const admin = await verifyAdmin();
+
+  const validatedFields = updateUserStatusSchema.safeParse(values);
+  if (!validatedFields.success) {
+    throw new Error('Invalid input.');
+  }
+  const { userId, isBlocked } = validatedFields.data;
+
+  if (userId === admin.id) {
+    throw new Error("Admins cannot block themselves.");
+  }
+
+  await db.user.update({
+    where: { id: userId },
+    data: { isBlocked },
+  });
+
+  revalidatePath('/admin/users');
 }

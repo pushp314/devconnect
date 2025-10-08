@@ -1,3 +1,4 @@
+
 import type { User } from '@prisma/client';
 import {
   Table,
@@ -9,8 +10,9 @@ import {
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { RoleManagementDropdown } from './role-management-dropdown';
+import { UserActionsDropdown } from './user-actions-dropdown';
 import { ClientTime } from '@/components/client-time';
+import { cn } from '@/lib/utils';
 
 interface UsersTableProps {
     users: User[];
@@ -24,13 +26,14 @@ export function UsersTable({ users }: UsersTableProps) {
                     <TableHead>User</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Joined</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
                 {users.map(user => (
-                    <TableRow key={user.id}>
+                    <TableRow key={user.id} className={cn(user.isBlocked && 'bg-destructive/10 hover:bg-destructive/20')}>
                         <TableCell>
                             <div className="flex items-center gap-3">
                                 <Avatar>
@@ -49,11 +52,16 @@ export function UsersTable({ users }: UsersTableProps) {
                                 {user.role}
                             </Badge>
                         </TableCell>
+                        <TableCell>
+                           <Badge variant={user.isBlocked ? 'destructive' : 'secondary'}>
+                                {user.isBlocked ? 'Blocked' : 'Active'}
+                            </Badge>
+                        </TableCell>
                          <TableCell>
                             <ClientTime date={user.createdAt} format={{ year: 'numeric', month: 'short', day: 'numeric' }} />
                         </TableCell>
                         <TableCell className="text-right">
-                            <RoleManagementDropdown userId={user.id} currentRole={user.role} />
+                            <UserActionsDropdown user={user} />
                         </TableCell>
                     </TableRow>
                 ))}
