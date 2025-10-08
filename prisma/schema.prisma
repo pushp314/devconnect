@@ -3,7 +3,6 @@
 
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-1.1.x"]
 }
 
 datasource db {
@@ -235,7 +234,7 @@ model Bug {
   description String       @db.Text
   status      String       @default("OPEN") // OPEN, IN_PROGRESS, CLOSED
   reporterId  String
-  reporter    User         @relation(fields: [reporterId], references: [id])
+  reporter    User         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -269,17 +268,17 @@ model BugComment {
 }
 
 model Component {
-  id             String    @id @default(cuid())
-  title          String    @unique
-  description    String    @db.Text
+  id             String   @id @default(cuid())
+  title          String   @unique
+  description    String   @db.Text
   price          Int
   tags           String[]
   previewUrls    String[]
   zipFileUrl     String
   livePreviewUrl String?
-  status         String    @default("pending") // pending, approved, rejected
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  status         String   @default("pending") // pending, approved, rejected
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   creatorId String
   creator   User @relation("CreatedComponents", fields: [creatorId], references: [id], onDelete: Cascade)
@@ -291,14 +290,14 @@ model Component {
 }
 
 model Order {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
   componentId String
   component   Component @relation(fields: [componentId], references: [id])
   amount      Int
   status      String
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 
   @@index([userId])
   @@index([componentId])

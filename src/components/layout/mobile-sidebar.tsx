@@ -52,6 +52,10 @@ export function MobileSidebar() {
                         return null;
                        }
 
+                       const isActive = link.label === 'Marketplace'
+                        ? pathname.startsWith(href)
+                        : pathname === href;
+
                        return (
                         <Link
                             key={link.href}
@@ -59,7 +63,7 @@ export function MobileSidebar() {
                             onClick={() => setOpen(false)}
                             className={cn(
                             'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
-                            pathname === href && 'text-primary bg-muted'
+                            isActive && 'text-primary bg-muted'
                             )}
                         >
                             <link.icon className="h-4 w-4" />
