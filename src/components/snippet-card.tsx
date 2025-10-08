@@ -16,6 +16,8 @@ import { ReactLivePreview } from "./preview/ReactLivePreview";
 import { isCodeSafeForPreview } from "@/lib/previewSecurity";
 import { AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { HTMLPreview } from "./preview/HTMLPreview";
+import { JSPreview } from "./preview/JSPreview";
 
 type PopulatedSnippet = Snippet & {
   author: User;
@@ -41,8 +43,21 @@ export function SnippetCard({ snippet }: SnippetCardProps) {
   const isCodeSafe = isCodeSafeForPreview(snippet.code);
   const canShowPreview = isPreviewable && isCodeSafe;
 
+  const renderPreview = () => {
+    switch (snippet.language) {
+      case 'React':
+        return <ReactLivePreview code={snippet.code} />;
+      case 'HTML':
+        return <HTMLPreview html={snippet.code} />;
+      case 'JavaScript':
+        return <JSPreview js={snippet.code} />;
+      default:
+        return null;
+    }
+  };
+
   const renderContent = () => {
-    if (canShowPreview && snippet.language === 'React') {
+    if (canShowPreview) {
       return (
         <Tabs defaultValue="preview" className="flex-1 flex flex-col min-h-0">
           <TabsList className="grid w-full grid-cols-2">
@@ -50,7 +65,7 @@ export function SnippetCard({ snippet }: SnippetCardProps) {
             <TabsTrigger value="code">Code</TabsTrigger>
           </TabsList>
           <TabsContent value="preview" className="flex-grow my-2 relative rounded-lg border overflow-hidden bg-muted/20">
-             <ReactLivePreview code={snippet.code} />
+             {renderPreview()}
           </TabsContent>
           <TabsContent value="code" className="flex-grow my-2 relative rounded-lg border overflow-hidden">
             <div className="absolute inset-0 overflow-y-auto">
