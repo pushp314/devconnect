@@ -18,6 +18,7 @@ import { AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { HTMLPreview } from "./preview/HTMLPreview";
 import { JSPreview } from "./preview/JSPreview";
+import { PyodidePreview } from "./preview/PyodidePreview";
 
 type PopulatedSnippet = Snippet & {
   author: User;
@@ -33,7 +34,7 @@ interface SnippetCardProps {
   snippet: PopulatedSnippet;
 }
 
-const previewLanguages = ["React", "HTML", "JavaScript"];
+const previewLanguages = ["React", "HTML", "JavaScript", "Python"];
 
 export function SnippetCard({ snippet }: SnippetCardProps) {
   const user = useCurrentUser();
@@ -51,6 +52,8 @@ export function SnippetCard({ snippet }: SnippetCardProps) {
         return <HTMLPreview html={snippet.code} />;
       case 'JavaScript':
         return <JSPreview js={snippet.code} />;
+      case 'Python':
+        return <PyodidePreview code={snippet.code} />;
       default:
         return null;
     }

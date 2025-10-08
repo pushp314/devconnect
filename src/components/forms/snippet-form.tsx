@@ -28,8 +28,8 @@ import type { Snippet } from "@prisma/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ShieldCheck } from "lucide-react";
 
-const previewLanguages = ["React", "HTML", "JavaScript"];
-const codeOnlyLanguages = ["TypeScript", "Python", "Go", "Rust", "Java", "C#"];
+const previewLanguages = ["React", "HTML", "JavaScript", "Python"];
+const codeOnlyLanguages = ["TypeScript", "Go", "Rust", "Java", "C#"];
 
 
 const formSchema = z.object({
@@ -193,6 +193,7 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
                     <AlertTitle className="font-headline">Live Preview Safety</AlertTitle>
                     <AlertDescription className="text-xs">
                      For security, live previews run in a sandbox. Network requests, cookies, and other sensitive APIs are disabled.
+                     {selectedLanguage === 'Python' && " Note: The Python environment may take a moment to load the first time."}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -211,7 +212,7 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
                     </FormControl>
                     <FormDescription>
                      {isPreviewAvailable 
-                        ? 'Your code must be a valid, self-contained component or script. TailwindCSS classes are supported.'
+                        ? 'Your code must be a valid, self-contained component or script. TailwindCSS classes are supported for HTML/React.'
                         : 'Your code will be displayed as a static, read-only block.'
                      }
                     </FormDescription>
