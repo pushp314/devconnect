@@ -3,9 +3,9 @@
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
-import type { Component, User } from '@prisma/client';
+import type { Component, User, Order } from '@prisma/client';
 import { z } from 'zod';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 export type PopulatedMarketplaceComponent = Component & {
     creator: User
@@ -85,4 +85,72 @@ export async function uploadComponent(values: z.infer<typeof uploadComponentSche
 
     revalidatePath('/components-marketplace');
     revalidatePath('/dashboard/components');
+}
+
+export async function createOrder({
+  componentId,
+  amount,
+}: {
+  componentId: string;
+  amount: number;
+}) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    throw new Error('Authentication required.');
+  }
+
+  const component = await db.component.findUnique({ where: { id: componentId } });
+  if (!component) throw new Error('Component not found');
+
+  if (component.price !== amount) {
+    throw new Error('Price mismatch detected.');
+  }
+
+  // Add to purchased IDs first
+  await db.user.update({
+    where: { id: session.user.id },
+    data: {
+      purchasedComponentIds: {
+        push: componentId,
+      },
+    },
+  });
+
+  const order = await db.order.create({
+    data: {
+      userId: session.user.id,
+      componentId: componentId,
+      amount: amount,
+      status: 'completed',
+    },
+  });
+
+  revalidatePath(`/components-marketplace/${componentId}`);
+  revalidatePath('/dashboard/components');
+  return order;
+}
+
+export async function downloadFreeComponent(componentId: string) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        throw new Error('Authentication required.');
+    }
+
+    const component = await db.component.findUnique({ where: { id: componentId } });
+    if (!component) throw new Error('Component not found');
+
+    if (component.price !== 0) {
+        throw new Error('This component is not free.');
+    }
+
+    // Check if already "purchased"
+    const existingOrder = await db.order.findFirst({
+        where: { userId: session.user.id, componentId: componentId }
+    });
+
+    if (!existingOrder) {
+        await createOrder({ componentId, amount: 0 });
+    }
+
+    return { fileUrl: component.zipFileUrl };
 }

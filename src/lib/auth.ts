@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import Google from "next-auth/providers/google";
 import GitHub from "next-auth/providers/github";
 import type { Adapter } from "next-auth/adapters";
+import type { User } from "@prisma/client";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db) as Adapter,
@@ -20,13 +21,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async session({ session, user }) {
       if (session.user) {
-        session.user.id = user.id;
-        
-        // Fetch the user from the database to get the username
         const dbUser = await db.user.findUnique({
           where: { id: user.id },
         });
+        session.user.id = user.id;
         session.user.username = dbUser?.username ?? null;
+        (session.user as User).purchasedComponentIds = dbUser?.purchasedComponentIds ?? [];
+
       }
       return session;
     },

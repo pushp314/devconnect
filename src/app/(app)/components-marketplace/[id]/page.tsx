@@ -11,11 +11,18 @@ import {
 } from "@/components/ui/carousel";
 import Image from "next/image";
 import { ComponentPurchaseClient } from "@/components/marketplace/component-purchase-client";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 export default async function ComponentDetailPage({ params }: { params: { id: string } }) {
+  const session = await auth();
   const component = await getMarketplaceComponentById(params.id);
   const author = component.creator;
   const authorInitials = author.name?.split(' ').map(n => n[0]).join('') ?? '';
+
+  const hasPurchased = session?.user?.purchasedComponentIds.includes(component.id) ?? false;
 
   return (
     <div className="container py-12">
@@ -69,7 +76,17 @@ export default async function ComponentDetailPage({ params }: { params: { id: st
                   {component.price === 0 ? "Free Download" : `₹${component.price}`}
               </h2>
               
-              <ComponentPurchaseClient component={component} />
+              {hasPurchased ? (
+                  <Button asChild className="w-full text-lg h-12">
+                    <a href={component.zipFileUrl} download>
+                      <Download className="mr-2" />
+                      Download
+                    </a>
+                  </Button>
+              ) : (
+                <ComponentPurchaseClient component={component} />
+              )}
+              
 
               <div className="mt-8">
                 <h3 className="font-headline font-semibold mb-3">Tags</h3>
