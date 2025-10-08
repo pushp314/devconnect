@@ -13,9 +13,10 @@ interface CommentsSheetProps {
   onOpenChange: (open: boolean) => void;
   snippetId?: string;
   documentId?: string;
+  bugId?: string;
 }
 
-export function CommentsSheet({ open, onOpenChange, snippetId, documentId }: CommentsSheetProps) {
+export function CommentsSheet({ open, onOpenChange, snippetId, documentId, bugId }: CommentsSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg p-0 flex flex-col">
@@ -27,7 +28,7 @@ export function CommentsSheet({ open, onOpenChange, snippetId, documentId }: Com
         </SheetHeader>
         <ScrollArea className="flex-1">
             <div className="px-6 pb-6">
-                <CommentSection snippetId={snippetId} documentId={documentId} isSheet={true} />
+                <CommentSection snippetId={snippetId} documentId={documentId} bugId={bugId} isSheet={true} />
             </div>
         </ScrollArea>
       </SheetContent>

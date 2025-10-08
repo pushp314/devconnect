@@ -8,14 +8,16 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { addSnippetComment } from "@/app/actions/snippets";
 import { addDocumentComment } from "@/app/actions/documents";
+import { addBugComment } from "@/app/actions/bugs";
 
 interface CommentFormProps {
   snippetId?: string;
   documentId?: string;
+  bugId?: string;
   onCommentAdded: (comment: { content: string }) => void;
 }
 
-export function CommentForm({ snippetId, documentId, onCommentAdded }: CommentFormProps) {
+export function CommentForm({ snippetId, documentId, bugId, onCommentAdded }: CommentFormProps) {
   const user = useCurrentUser();
   const { toast } = useToast();
   const [content, setContent] = useState("");
@@ -41,6 +43,8 @@ export function CommentForm({ snippetId, documentId, onCommentAdded }: CommentFo
                 await addSnippetComment({ content, snippetId });
             } else if (documentId) {
                 await addDocumentComment({ content, documentId });
+            } else if (bugId) {
+                await addBugComment({ content, bugId });
             }
             toast({ title: "Comment posted!" });
         } catch (error) {

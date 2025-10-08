@@ -3,24 +3,26 @@
 import { useState, useEffect, useOptimistic, useTransition } from "react";
 import { getSnippetComments } from "@/app/actions/snippets";
 import { getDocumentComments } from "@/app/actions/documents";
-import type { Comment as CommentType, User } from "@prisma/client";
+import { getBugComments } from "@/app/actions/bugs";
+import type { Comment as CommentType, DocumentComment, BugComment, User } from "@prisma/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CommentForm } from "./comment-form";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
-type PopulatedComment = (CommentType & { author: User });
+type AnyComment = (CommentType | DocumentComment | BugComment) & { author: User };
 
 interface CommentSectionProps {
   snippetId?: string;
   documentId?: string;
+  bugId?: string;
   isSheet?: boolean;
 }
 
-export function CommentSection({ snippetId, documentId, isSheet = false }: CommentSectionProps) {
+export function CommentSection({ snippetId, documentId, bugId, isSheet = false }: CommentSectionProps) {
   const user = useCurrentUser();
-  const [comments, setComments] = useState<PopulatedComment[]>([]);
+  const [comments, setComments] = useState<AnyComment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -29,9 +31,11 @@ export function CommentSection({ snippetId, documentId, isSheet = false }: Comme
       try {
         let fetchedComments;
         if (snippetId) {
-          fetchedComments = await getSnippetComments(snippetId) as PopulatedComment[];
+          fetchedComments = await getSnippetComments(snippetId) as AnyComment[];
         } else if (documentId) {
-          fetchedComments = await getDocumentComments(documentId) as PopulatedComment[];
+          fetchedComments = await getDocumentComments(documentId) as AnyComment[];
+        } else if (bugId) {
+          fetchedComments = await getBugComments(bugId) as AnyComment[];
         }
         setComments(fetchedComments || []);
       } catch (error) {
@@ -41,7 +45,7 @@ export function CommentSection({ snippetId, documentId, isSheet = false }: Comme
       }
     }
     fetchComments();
-  }, [snippetId, documentId]);
+  }, [snippetId, documentId, bugId]);
 
   const [optimisticComments, addOptimisticComment] = useOptimistic(
     comments,
@@ -96,6 +100,7 @@ export function CommentSection({ snippetId, documentId, isSheet = false }: Comme
         <CommentForm 
             snippetId={snippetId} 
             documentId={documentId}
+            bugId={bugId}
             onCommentAdded={handleCommentAdded}
         />
       </div>

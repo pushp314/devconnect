@@ -10,34 +10,37 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Pencil, Trash2 } from 'lucide-react';
 import { DeleteDocButton } from '@/components/delete-doc-button';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
-const renderMarkdown = (markdown: string) => {
-  const parts = markdown.split(/(```[\s\S]*?```|`[^`]*?`)/g);
-
-  return parts.map((part, index) => {
-    if (part.startsWith('```')) {
-      const codeMatch = part.match(/```(\w+)?\n([\s\S]+)```/);
-      if (codeMatch) {
-        const language = codeMatch[1] || 'bash';
-        const code = codeMatch[2];
-        return <div className="my-6" key={index}><CodeBlock language={language} code={code} /></div>;
-      }
-    }
-    
-    if (part.startsWith('`') && part.endsWith('`')) {
-      return <code key={index} className="bg-muted text-foreground font-code px-1 py-0.5 rounded-sm">{part.slice(1, -1)}</code>;
-    }
-
-    return part.split('\n').map((line, lineIndex) => {
-      if (line.trim() === '') return <div key={`${index}-${lineIndex}`} className="h-4" />;
-      if (line.startsWith('# ')) return <h1 key={`${index}-${lineIndex}`} className="text-4xl font-extrabold font-headline mt-10 mb-4 pb-2 border-b">{line.substring(2)}</h1>;
-      if (line.startsWith('## ')) return <h2 key={`${index}-${lineIndex}`} className="text-3xl font-bold font-headline mt-8 mb-4">{line.substring(3)}</h2>;
-      if (line.startsWith('### ')) return <h3 key={`${index}-${lineIndex}`} className="text-2xl font-bold font-headline mt-6 mb-3">{line.substring(4)}</h3>;
-      if (line.startsWith('- ')) return <li key={`${index}-${lineIndex}`} className="ml-6 list-disc">{line.substring(2)}</li>
-      return <p key={`${index}-${lineIndex}`} className="my-4 leading-relaxed text-lg">{line}</p>;
-    });
-  });
+const MarkdownComponents = {
+  h1: (props: any) => <h1 className="text-4xl font-extrabold font-headline mt-10 mb-4 pb-2 border-b" {...props} />,
+  h2: (props: any) => <h2 className="text-3xl font-bold font-headline mt-8 mb-4" {...props} />,
+  h3: (props: any) => <h3 className="text-2xl font-bold font-headline mt-6 mb-3" {...props} />,
+  p: (props: any) => <p className="my-4 leading-relaxed text-lg" {...props} />,
+  ul: (props: any) => <ul className="list-disc ml-6 my-4 space-y-2" {...props} />,
+  ol: (props: any) => <ol className="list-decimal ml-6 my-4 space-y-2" {...props} />,
+  li: (props: any) => <li className="text-lg" {...props} />,
+  code: ({node, inline, className, children, ...props}: any) => {
+    const match = /language-(\w+)/.exec(className || '')
+    return !inline && match ? (
+      <div className="my-6">
+        <CodeBlock language={match[1]} code={String(children).replace(/\n$/, '')} />
+      </div>
+    ) : (
+      <code className="bg-muted text-foreground font-code px-1.5 py-1 rounded-md" {...props}>
+        {children}
+      </code>
+    )
+  },
+  table: (props: any) => <table className="w-full my-6 border-collapse border border-border" {...props} />,
+  thead: (props: any) => <thead className="bg-muted" {...props} />,
+  tbody: (props: any) => <tbody {...props} />,
+  tr: (props: any) => <tr className="border-b border-border" {...props} />,
+  th: (props: any) => <th className="p-3 text-left font-semibold border-r border-border" {...props} />,
+  td: (props: any) => <td className="p-3 border-r border-border" {...props} />,
 };
+
 
 export default async function DocPage({ params }: { params: { slug: string } }) {
   const session = await auth();
@@ -86,7 +89,12 @@ export default async function DocPage({ params }: { params: { slug: string } }) 
       )}
 
       <div className="prose prose-lg dark:prose-invert max-w-none">
-        {renderMarkdown(doc.content)}
+        <ReactMarkdown
+          components={MarkdownComponents}
+          remarkPlugins={[remarkGfm]}
+        >
+          {doc.content}
+        </ReactMarkdown>
       </div>
 
       <footer className="mt-12 pt-8 border-t">

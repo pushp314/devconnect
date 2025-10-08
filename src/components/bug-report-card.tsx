@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import {
   Card,
@@ -18,10 +18,14 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { upvoteBug } from "@/app/actions/bugs";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 type PopulatedBug = Bug & {
   reporter: User;
-  upvotes: BugUpvote[];
+  _count: {
+    upvotes: number;
+    comments: number;
+  };
 };
 
 interface BugReportCardProps {
@@ -31,42 +35,31 @@ interface BugReportCardProps {
 export function BugReportCard({ bug }: BugReportCardProps) {
   const user = useCurrentUser();
   const { toast } = useToast();
+  const router = useRouter();
   
-  const optimisiticUpvotes = bug.upvotes.map(u => u.userId);
-  const [upvotes, setUpvotes] = useState(optimisiticUpvotes);
+  const [isPending, startTransition] = useTransition();
 
-  const isUpvoted = user ? upvotes.includes(user.id) : false;
-
-  const handleUpvote = async () => {
+  const handleUpvote = () => {
     if (!user) {
-        toast({ variant: 'destructive', title: 'You must be logged in to upvote.' });
-        return;
+      toast({ variant: "destructive", title: "You must be logged in to upvote." });
+      return;
     }
     
-    // Optimistic update
-    if (isUpvoted) {
-        setUpvotes(upvotes.filter(id => id !== user.id));
-    } else {
-        setUpvotes([...upvotes, user.id]);
-    }
-
-    try {
+    startTransition(async () => {
+      try {
         await upvoteBug(bug.id);
-    } catch (error) {
-        // Revert optimistic update on error
-        if (isUpvoted) {
-            setUpvotes([...upvotes, user.id]);
-        } else {
-            setUpvotes(upvotes.filter(id => id !== user.id));
-        }
-        toast({ variant: 'destructive', title: 'Something went wrong.' });
-    }
+      } catch (error) {
+        toast({ variant: "destructive", title: "Something went wrong." });
+      }
+    });
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline text-xl">{bug.title}</CardTitle>
+        <CardTitle className="font-headline text-xl">
+          <Link href={`/bugs/${bug.id}`} className="hover:underline">{bug.title}</Link>
+        </CardTitle>
         <CardDescription className="flex items-center gap-2 pt-2">
           <Avatar className="h-6 w-6">
             <AvatarImage
@@ -84,32 +77,29 @@ export function BugReportCard({ bug }: BugReportCardProps) {
           </Link>
           <span className="mx-1">·</span>
           <time dateTime={bug.createdAt.toISOString()}>
-            {bug.createdAt.toLocaleDateString()}
+            {new Date(bug.createdAt).toLocaleDateString()}
           </time>
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground">{bug.description}</p>
+        <p className="text-sm text-muted-foreground line-clamp-2">{bug.description}</p>
       </CardContent>
       <CardFooter className="flex justify-between">
         <div className="flex gap-4 text-muted-foreground">
+           <div className="flex items-center gap-2">
+            <ThumbsUp
+              className="h-4 w-4"
+            />
+            <span>{bug._count.upvotes} Upvotes</span>
+          </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleUpvote}
-              className={cn("flex items-center gap-2", {
-                "text-primary": isUpvoted,
-              })}
-            >
-              <ThumbsUp
-                className={cn("h-4 w-4", { "fill-current": isUpvoted })}
-              />
-              <span>{upvotes.length} Upvotes</span>
-            </Button>
+            <MessageCircle className="h-4 w-4" />
+            <span>{bug._count.comments} Comments</span>
           </div>
         </div>
-        <Button variant="outline" disabled>View Details</Button>
+        <Button variant="outline" asChild>
+          <Link href={`/bugs/${bug.id}`}>View Details</Link>
+        </Button>
       </CardFooter>
     </Card>
   );
