@@ -26,7 +26,7 @@ import { createSnippet, updateSnippet } from "@/app/actions/snippets";
 import { useRouter } from "next/navigation";
 import type { Snippet } from "@prisma/client";
 
-const languages = ["JavaScript", "TypeScript"];
+const languages = ["TypeScript", "JavaScript"];
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters.").max(100),
@@ -168,7 +168,7 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
                       </SelectContent>
                     </Select>
                      <FormDescription>
-                      Only languages that can be rendered as React components are available.
+                      Only languages that can be rendered as interactive React components are available.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -182,13 +182,16 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
                     <FormLabel>Code</FormLabel>
                     <FormControl>
                        <Textarea
-                        placeholder="() => <Button>Hello World</Button>"
+                        placeholder="() => {
+  const [count, setCount] = React.useState(0);
+  return <Button onClick={() => setCount(count + 1)}>Clicked {count} times</Button>
+}"
                         className="font-code min-h-[200px]"
                         {...field}
                       />
                     </FormControl>
                     <FormDescription>
-                      Your code must be a valid React component function.
+                      Your code must be a valid, self-contained React (TSX/JSX) component. You can use TailwindCSS classes and Lucide icons.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

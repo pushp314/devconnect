@@ -15,9 +15,9 @@ const initialCode = `() => {
     return (
         <div className="flex flex-col items-center gap-4 text-center">
             <h3 className="font-headline text-2xl">Hello From the Playground!</h3>
-            <p className="text-muted-foreground">This is a live React preview.</p>
-            <Button onClick={() => setCount(count + 1)}>
-                <LucideReact.Plus className="mr-2" />
+            <p className="text-muted-foreground">This is a live React preview. Edit the code to see it change.</p>
+            <Button onClick={() => setCount(count + 1)} className="w-48">
+                <LucideReact.MousePointerClick className="mr-2" />
                 Clicked {count} times
             </Button>
         </div>
@@ -45,8 +45,9 @@ export default function PlaygroundPage() {
     const scope = {
         React,
         useState,
+        ...React,
         Button,
-        LucideReact,
+        ...LucideReact,
         cn,
     };
 
@@ -57,15 +58,12 @@ export default function PlaygroundPage() {
                     <Tabs defaultValue="tsx" className="flex-grow flex flex-col">
                         <TabsList className="m-2 shrink-0">
                             <TabsTrigger value="tsx">React (TSX)</TabsTrigger>
-                            <TabsTrigger value="html" disabled>HTML</TabsTrigger>
-                            <TabsTrigger value="css" disabled>CSS</TabsTrigger>
-                            <TabsTrigger value="js" disabled>JavaScript</TabsTrigger>
                         </TabsList>
                         <TabsContent value="tsx" className="flex-grow relative h-full min-h-[300px] lg:min-h-0">
                              <LiveEditor
                                 onChange={setCode}
                                 theme={theme === 'dark' ? reactLiveTheme.dark : reactLiveTheme.light}
-                                className="absolute inset-0 font-code text-sm !bg-transparent"
+                                className="absolute inset-0 font-code text-sm !bg-transparent p-4"
                                 style={{fontFamily: '"Source Code Pro", monospace'}}
                              />
                         </TabsContent>
