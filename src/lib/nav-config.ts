@@ -23,7 +23,6 @@ export const navSections = [
       { label: 'Explore', href: '/explore', icon: Compass },
       { label: 'Docs', href: '/docs', icon: BookOpen },
       { label: 'Community', href: '/community', icon: Users },
-      { label: 'Marketplace', href: '/components-marketplace', icon: ShoppingBag },
     ],
   },
   {

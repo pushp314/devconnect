@@ -110,7 +110,7 @@ export function ComponentPurchaseClient({ component }: ComponentPurchaseClientPr
     
     const handlePurchase = async () => {
         if (!user) {
-            router.push('/auth/signin?callbackUrl=' + encodeURIComponent(`/components-marketplace/${component.id}`));
+            router.push('/auth/signin?callbackUrl=' + encodeURIComponent(`/marketplace/${component.id}`));
             return;
         }
 

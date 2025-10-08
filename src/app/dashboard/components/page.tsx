@@ -55,7 +55,7 @@ export default async function DashboardComponentsPage() {
                             <h2 className="text-xl font-semibold">No Purchases Yet</h2>
                             <p className="mt-2 mb-4">Components you buy will appear here.</p>
                              <Button asChild>
-                                <Link href="/components-marketplace">
+                                <Link href="/marketplace">
                                     Explore Marketplace
                                 </Link>
                             </Button>
@@ -91,7 +91,7 @@ export default async function DashboardComponentsPage() {
                             <h2 className="text-xl font-semibold">No Uploads Yet</h2>
                             <p className="mt-2 mb-4">Share your first component with the community.</p>
                              <Button asChild>
-                                <Link href="/components-marketplace/upload">
+                                <Link href="/marketplace/upload">
                                     Upload Component
                                 </Link>
                             </Button>

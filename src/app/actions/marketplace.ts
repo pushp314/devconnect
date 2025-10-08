@@ -121,7 +121,7 @@ export async function uploadComponent(values: z.infer<typeof uploadComponentSche
         }
     });
 
-    revalidatePath('/components-marketplace');
+    revalidatePath('/marketplace');
     revalidatePath('/dashboard/components');
 }
 
@@ -164,7 +164,7 @@ export async function createOrder({
     },
   });
 
-  revalidatePath(`/components-marketplace/${componentId}`);
+  revalidatePath(`/marketplace/${componentId}`);
   revalidatePath('/dashboard/components');
   return order;
 }
@@ -192,7 +192,7 @@ export async function downloadFreeComponent(componentId: string) {
         await createOrder({ componentId, amount: 0 });
     }
 
-    revalidatePath(`/components-marketplace/${componentId}`);
+    revalidatePath(`/marketplace/${componentId}`);
     return { fileUrl: component.zipFileUrl };
 }
 
@@ -266,7 +266,7 @@ async function updateComponentStatus(componentId: string, status: "approved" | "
         data: { status },
     });
     revalidatePath('/admin/components');
-    revalidatePath('/components-marketplace');
+    revalidatePath('/marketplace');
 }
 
 export async function approveComponent(componentId: string) {
@@ -331,5 +331,5 @@ export async function submitReview(values: z.infer<typeof reviewSchema>) {
     });
 
     // 4. Revalidate the component page
-    revalidatePath(`/components-marketplace/${componentId}`);
+    revalidatePath(`/marketplace/${componentId}`);
 }

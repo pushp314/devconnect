@@ -14,7 +14,7 @@ export function MarketplaceComponentCard({ component }: MarketplaceComponentCard
   const authorInitials = author.name?.split(' ').map(n => n[0]).join('') ?? '';
 
   return (
-    <Link href={`/components-marketplace/${component.id}`}>
+    <Link href={`/marketplace/${component.id}`}>
       <Card className="group overflow-hidden transition-all hover:shadow-lg hover:border-primary/50 h-full flex flex-col">
         <CardHeader className="p-0 border-b">
           <div className="relative aspect-video">

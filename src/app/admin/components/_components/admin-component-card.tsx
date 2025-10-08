@@ -27,7 +27,7 @@ export function AdminComponentCard({ component }: AdminComponentCardProps) {
                         data-ai-hint="component preview"
                     />
                     <div className="flex-grow">
-                        <Link href={`/components-marketplace/${component.id}`} target="_blank" className="font-bold text-lg font-headline hover:underline">
+                        <Link href={`/marketplace/${component.id}`} target="_blank" className="font-bold text-lg font-headline hover:underline">
                             {component.title}
                         </Link>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
