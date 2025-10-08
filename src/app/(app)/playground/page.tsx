@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -9,6 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import * as LucideReact from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
+
+
+const languageSuggestions = {
+    "Web": ["React", "HTML", "JavaScript", "TypeScript"],
+    "General": ["Python", "Java", "Go", "Rust", "C#"],
+};
 
 const initialCode = `() => {
     const [count, setCount] = React.useState(0);
@@ -41,6 +49,7 @@ const reactLiveTheme = {
 export default function PlaygroundPage() {
     const { theme } = useTheme();
     const [code, setCode] = useState(initialCode);
+    const [language, setLanguage] = useState("React");
 
     const scope = {
         React,
@@ -56,19 +65,36 @@ export default function PlaygroundPage() {
         <LiveProvider code={code} scope={scope} noInline={false}>
             <div className="h-full grid grid-cols-1 lg:grid-cols-2">
                 <div className="h-full flex flex-col lg:h-auto lg:min-h-[calc(100vh-8rem)]">
-                    <Tabs defaultValue="tsx" className="flex-grow flex flex-col">
-                        <TabsList className="m-2 shrink-0">
-                            <TabsTrigger value="tsx">React (TSX)</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="tsx" className="flex-grow relative h-full min-h-[300px] lg:min-h-0">
-                             <LiveEditor
-                                onChange={setCode}
-                                theme={theme === 'dark' ? reactLiveTheme.dark : reactLiveTheme.light}
-                                className="absolute inset-0 font-code text-sm !bg-transparent p-4"
-                                style={{fontFamily: '"Source Code Pro", monospace'}}
-                             />
-                        </TabsContent>
-                    </Tabs>
+                    <div className="p-2 flex justify-between items-center border-b">
+                         <Tabs defaultValue="tsx" className="shrink-0">
+                            <TabsList>
+                                <TabsTrigger value="tsx">Code</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                        <Select onValueChange={setLanguage} value={language}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Select Language" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {Object.entries(languageSuggestions).map(([group, langs]) => (
+                                    <SelectGroup key={group}>
+                                        <SelectLabel>{group}</SelectLabel>
+                                        {langs.map(lang => (
+                                            <SelectItem key={lang} value={lang}>{lang}</SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex-grow relative h-full min-h-[300px] lg:min-h-0">
+                         <LiveEditor
+                            onChange={setCode}
+                            theme={theme === 'dark' ? reactLiveTheme.dark : reactLiveTheme.light}
+                            className="absolute inset-0 font-code text-sm !bg-transparent p-4"
+                            style={{fontFamily: '"Source Code Pro", monospace'}}
+                         />
+                    </div>
                 </div>
                 <div className="relative h-full border-t lg:border-t-0 lg:border-l bg-muted/20 min-h-[300px] lg:min-h-0">
                      <Card className="h-full w-full rounded-none border-0">
