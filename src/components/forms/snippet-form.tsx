@@ -38,6 +38,7 @@ const formSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters.").max(500),
   language: z.string({ required_error: "Please select a language." }),
   code: z.string().min(10, "Code snippet must have at least 10 characters."),
+  usage: z.string().optional(),
   tags: z.array(z.string()).min(1, "Please add at least one tag.").max(10),
   visibility: z.enum(["public", "private"]).default("public"),
   allowForks: z.boolean().default(true),
@@ -60,6 +61,7 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
       description: snippet?.description || "",
       language: snippet?.language || undefined,
       code: snippet?.code || "",
+      usage: snippet?.usage || "",
       tags: snippet?.tags || [],
       visibility: (snippet?.visibility as "public" | "private" | undefined) || "public",
       allowForks: snippet?.allowForks ?? true,
@@ -222,6 +224,26 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
                         ? 'Your code must be a valid, self-contained component or script. TailwindCSS classes are supported for HTML/React.'
                         : 'Your code will be displayed as a static, read-only block.'
                      }
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="usage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Usage (Markdown)</FormLabel>
+                    <FormControl>
+                       <Textarea
+                        placeholder="Explain how to use your code. You can use Markdown for formatting."
+                        className="font-code min-h-[150px]"
+                        {...field}
+                      />
+                    </FormControl>
+                     <FormDescription>
+                        Provide detailed instructions, API, or examples.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

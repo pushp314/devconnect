@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   LayoutDashboard,
   Share,
+  Sparkles,
 } from 'lucide-react';
 
 export const navSections = [
@@ -21,6 +22,7 @@ export const navSections = [
     title: 'Discover',
     items: [
       { label: 'Feed', href: '/feed', icon: Home },
+      { label: 'For You', href: '/foryou', icon: Sparkles },
       { label: 'Explore', href: '/explore', icon: Compass },
       { label: 'Docs', href: '/docs', icon: BookOpen },
       { label: 'Community', href: '/community', icon: Users },

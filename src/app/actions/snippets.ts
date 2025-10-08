@@ -12,6 +12,7 @@ const snippetFormSchema = z.object({
   description: z.string().min(10).max(500),
   language: z.string(),
   code: z.string().min(10),
+  usage: z.string().optional(),
   tags: z.array(z.string()).min(1).max(10),
   visibility: z.string().optional().default('public'),
   allowForks: z.boolean().optional().default(true),
@@ -29,7 +30,7 @@ export async function createSnippet(values: z.infer<typeof snippetFormSchema>) {
     throw new Error('Invalid snippet data.');
   }
 
-  const { title, description, language, code, tags, visibility, allowForks } = validatedFields.data;
+  const { title, description, language, code, usage, tags, visibility, allowForks } = validatedFields.data;
 
   const snippet = await db.snippet.create({
     data: {
@@ -37,6 +38,7 @@ export async function createSnippet(values: z.infer<typeof snippetFormSchema>) {
       description,
       language,
       code,
+      usage,
       tags: {
         set: tags,
       },
@@ -66,7 +68,7 @@ export async function updateSnippet(values: z.infer<typeof updateSnippetFormSche
         throw new Error('Invalid snippet data.');
     }
 
-    const { id, title, description, language, code, tags, visibility, allowForks } = validatedFields.data;
+    const { id, title, description, language, code, usage, tags, visibility, allowForks } = validatedFields.data;
 
     const snippetToUpdate = await db.snippet.findUnique({ where: { id } });
     if (!snippetToUpdate) {
@@ -83,6 +85,7 @@ export async function updateSnippet(values: z.infer<typeof updateSnippetFormSche
             description,
             language,
             code,
+            usage,
             tags: { set: tags },
             visibility,
             allowForks,

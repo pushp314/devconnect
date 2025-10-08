@@ -332,3 +332,120 @@ export async function getSavedItems() {
 
     return { savedSnippets: populatedSnippets, savedDocuments: populatedDocs };
 }
+
+export async function getRecommendedItems() {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { recommendedSnippets: [], recommendedDocs: [] };
+    }
+    const userId = session.user.id;
+  
+    // 1. Get tags from user's liked and saved items
+    const likedSnippets = await db.like.findMany({
+      where: { userId },
+      select: { snippet: { select: { tags: true } } },
+    });
+    const savedSnippets = await db.savedSnippet.findMany({
+      where: { userId },
+      select: { snippet: { select: { tags: true } } },
+    });
+    const likedDocs = await db.documentLike.findMany({
+        where: { userId },
+        select: { document: { select: { tags: true } } },
+    });
+    const savedDocs = await db.documentSave.findMany({
+        where: { userId },
+        select: { document: { select: { tags: true } } },
+    });
+  
+    const userTags = new Set([
+      ...likedSnippets.flatMap(i => i.snippet.tags),
+      ...savedSnippets.flatMap(i => i.snippet.tags),
+      ...likedDocs.flatMap(i => i.document.tags),
+      ...savedDocs.flatMap(i => i.document.tags),
+    ]);
+  
+    if (userTags.size === 0) {
+      // Fallback for new users: get popular items
+      const popularSnippets = await db.snippet.findMany({
+        where: { visibility: 'public' },
+        orderBy: { likes: { _count: 'desc' } },
+        take: 10,
+        include: { author: true, likes: true, comments: true, savedBy: true, _count: { select: { likes: true, comments: true } } }
+      });
+       const popularDocs = await db.document.findMany({
+        orderBy: { likes: { _count: 'desc' } },
+        take: 10,
+        include: { author: true, likes: true, comments: true, _count: { select: { likes: true, comments: true } } }
+      });
+      return { 
+          recommendedSnippets: popularSnippets.map(snippet => ({
+            ...snippet,
+            likesCount: snippet._count.likes,
+            commentsCount: snippet._count.comments,
+        })),
+        recommendedDocs: popularDocs.map(doc => ({
+            ...doc,
+            likesCount: doc._count.likes,
+            commentsCount: doc._count.comments,
+        }))
+       };
+    }
+  
+    // 2. Find items with matching tags, excluding user's own and already interacted items
+    const interactedSnippetIds = (await db.snippet.findMany({
+        where: {
+            OR: [
+                { authorId: userId },
+                { likes: { some: { userId } } },
+                { savedBy: { some: { userId } } },
+            ]
+        },
+        select: { id: true }
+    })).map(s => s.id);
+
+    const interactedDocIds = (await db.document.findMany({
+        where: {
+            OR: [
+                { authorId: userId },
+                { likes: { some: { userId } } },
+                { savedBy: { some: { userId } } },
+            ]
+        },
+        select: { id: true }
+    })).map(d => d.id);
+  
+    const recommendedSnippets = await db.snippet.findMany({
+      where: {
+        visibility: 'public',
+        id: { notIn: interactedSnippetIds },
+        tags: { hasSome: Array.from(userTags) },
+      },
+      take: 10,
+      orderBy: { likes: { _count: 'desc' } },
+      include: { author: true, likes: true, comments: true, savedBy: true, _count: { select: { likes: true, comments: true } } }
+    });
+
+     const recommendedDocs = await db.document.findMany({
+      where: {
+        id: { notIn: interactedDocIds },
+        tags: { hasSome: Array.from(userTags) },
+      },
+      take: 10,
+      orderBy: { likes: { _count: 'desc' } },
+      include: { author: true, likes: true, comments: true, _count: { select: { likes: true, comments: true } } }
+    });
+  
+    return { 
+        recommendedSnippets: recommendedSnippets.map(snippet => ({
+            ...snippet,
+            likesCount: snippet._count.likes,
+            commentsCount: snippet._count.comments,
+        })),
+        recommendedDocs: recommendedDocs.map(doc => ({
+            ...doc,
+            likesCount: doc._count.likes,
+            commentsCount: doc._count.comments,
+        }))
+    };
+  }

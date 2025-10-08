@@ -21,6 +21,9 @@ import { JSPreview } from "./preview/JSPreview";
 import { PyodidePreview } from "./preview/PyodidePreview";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { ClientTime } from "./client-time";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { ScrollArea } from "./ui/scroll-area";
 
 type PopulatedSnippet = Snippet & {
   author: User;
@@ -63,43 +66,67 @@ export function SnippetCard({ snippet }: SnippetCardProps) {
   };
 
   const renderContent = () => {
-    if (canShowPreview) {
-      return (
-        <Tabs defaultValue="preview" className="flex-1 flex flex-col min-h-0">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="preview">Preview</TabsTrigger>
-            <TabsTrigger value="code">Code</TabsTrigger>
-          </TabsList>
+    const hasUsage = !!snippet.usage;
+    
+    let tabs = [];
+    if (canShowPreview) tabs.push({ value: "preview", label: "Preview" });
+    tabs.push({ value: "code", label: "Code" });
+    if (hasUsage) tabs.push({ value: "usage", label: "Usage" });
+    
+    // Determine default tab
+    const defaultTab = canShowPreview ? "preview" : "code";
+
+    if (tabs.length === 1) { // Only "Code" tab
+        return (
+            <div className="flex-grow my-2 flex flex-col gap-2">
+                {!isCodeSafe && isPreviewable && (
+                     <Alert variant="destructive" className="text-xs">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Preview Disabled</AlertTitle>
+                        <AlertDescription>
+                            This snippet contains code that is not allowed in live previews.
+                        </AlertDescription>
+                    </Alert>
+                )}
+                <div className="flex-grow relative rounded-lg border overflow-hidden">
+                    <div className="absolute inset-0 overflow-y-auto">
+                        <CodeBlock code={snippet.code} language={snippet.language.toLowerCase()} />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    
+    return (
+      <Tabs defaultValue={defaultTab} className="flex-1 flex flex-col min-h-0">
+        <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
+          {tabs.map(tab => (
+            <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>
+          ))}
+        </TabsList>
+        
+        {canShowPreview && (
           <TabsContent value="preview" className="flex-grow my-2 relative rounded-lg border overflow-hidden bg-muted/20">
              {renderPreview()}
           </TabsContent>
-          <TabsContent value="code" className="flex-grow my-2 relative rounded-lg border overflow-hidden">
-            <div className="absolute inset-0 overflow-y-auto">
-              <CodeBlock code={snippet.code} language={snippet.language.toLowerCase()} />
-            </div>
-          </TabsContent>
-        </Tabs>
-      );
-    }
+        )}
 
-    // Fallback for non-previewable or unsafe languages
-    return (
-        <div className="flex-grow my-2 flex flex-col gap-2">
-            {!isCodeSafe && isPreviewable && (
-                 <Alert variant="destructive" className="text-xs">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Preview Disabled</AlertTitle>
-                    <AlertDescription>
-                        This snippet contains code that is not allowed in live previews.
-                    </AlertDescription>
-                </Alert>
-            )}
-            <div className="flex-grow relative rounded-lg border overflow-hidden">
-                <div className="absolute inset-0 overflow-y-auto">
-                    <CodeBlock code={snippet.code} language={snippet.language.toLowerCase()} />
-                </div>
-            </div>
-        </div>
+        <TabsContent value="code" className="flex-grow my-2 relative rounded-lg border overflow-hidden">
+          <div className="absolute inset-0 overflow-y-auto">
+            <CodeBlock code={snippet.code} language={snippet.language.toLowerCase()} />
+          </div>
+        </TabsContent>
+
+        {hasUsage && (
+          <TabsContent value="usage" className="flex-grow my-2 relative rounded-lg border overflow-hidden">
+            <ScrollArea className="absolute inset-0">
+              <article className="prose dark:prose-invert max-w-none p-4 text-sm">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{snippet.usage!}</ReactMarkdown>
+              </article>
+            </ScrollArea>
+          </TabsContent>
+        )}
+      </Tabs>
     );
   };
 
