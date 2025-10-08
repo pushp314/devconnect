@@ -4,13 +4,6 @@ import path from 'path';
 import multer from 'multer';
 import { auth } from '@/lib/auth';
 
-// Disable Next.js body parsing to handle FormData with multer
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
 // Configure multer for file storage
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
