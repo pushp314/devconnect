@@ -1,6 +1,5 @@
 import { Header } from "@/components/layout/header";
 import { DesktopSidebar } from "@/components/layout/desktop-sidebar";
-import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -16,7 +15,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
           {children}
         </main>
       </div>
-      <MobileBottomNav />
     </div>
   );
 }

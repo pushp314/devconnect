@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { NotificationBell } from "./notification-bell";
 import { auth } from "@/lib/auth";
+import { MobileSidebar } from "./mobile-sidebar";
 
 export async function Header() {
   const session = await auth();
@@ -18,6 +19,7 @@ export async function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-screen-2xl items-center">
         <div className="mr-4 flex items-center">
+          <MobileSidebar />
           <Link href="/feed" className="mr-6 flex items-center space-x-2">
             <Code className="h-6 w-6 text-primary" />
             <span className="hidden font-bold sm:inline-block font-headline">

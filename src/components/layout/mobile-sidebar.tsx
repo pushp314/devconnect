@@ -1,0 +1,63 @@
+"use client"
+
+import { useState } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+
+import { navSections } from "@/lib/nav-config"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Code, Menu } from "lucide-react"
+
+export function MobileSidebar() {
+  const [open, setOpen] = useState(false)
+  const pathname = usePathname()
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button
+          variant="ghost"
+          className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
+        >
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Toggle Menu</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="pr-0">
+        <Link
+            href="/"
+            className="flex items-center gap-2 font-bold text-lg mb-6"
+            onClick={() => setOpen(false)}
+        >
+            <Code className="w-6 h-6 text-primary" />
+            <h1 className="font-headline">CodeStudio</h1>
+        </Link>
+        <div className="flex flex-col gap-4">
+            {navSections.map((section) => (
+                <div key={section.title} className="flex flex-col gap-1">
+                    <h2 className="text-sm font-semibold tracking-tight text-muted-foreground px-3">
+                        {section.title}
+                    </h2>
+                     {section.items.map((link) => (
+                    <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => setOpen(false)}
+                        className={cn(
+                        'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
+                        pathname === link.href && 'text-primary bg-muted'
+                        )}
+                    >
+                        <link.icon className="h-4 w-4" />
+                        {link.label}
+                    </Link>
+                    ))}
+                </div>
+            ))}
+        </div>
+      </SheetContent>
+    </Sheet>
+  )
+}
