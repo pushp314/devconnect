@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { Bookmark, Heart, MessageCircle, Wand2, Loader2 } from "lucide-react";
+import { Bookmark, Heart, MessageCircle, Wand2 } from "lucide-react";
 import type { Snippet } from "@prisma/client";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useToast } from "@/hooks/use-toast";
 import { toggleSnippetLike, toggleSnippetSave } from "@/app/actions/snippets";
 import { AIExplanationModal } from "@/components/ai-explanation-modal";
-import { CommentSection } from "@/components/comments/comment-section";
+import { CommentsSheet } from "@/components/comments/comments-sheet";
 
 type InteractionProps = {
   snippet: Snippet & {
@@ -54,40 +54,39 @@ export function SnippetInteraction({ snippet }: InteractionProps) {
 
   return (
     <>
-      <div className="flex flex-col w-full">
-        <div className="flex justify-between items-center w-full">
-          <div className="flex gap-1 text-muted-foreground">
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn("flex items-center gap-2", { "text-primary": isLiked })}
-              onClick={handleLike}
-            >
-              <Heart className={cn("h-4 w-4", { "fill-current": isLiked })} />
-              <span>{likesCount}</span>
-            </Button>
-            <Button variant="ghost" size="sm" className="flex items-center gap-2" onClick={() => setShowComments(!showComments)}>
-              <MessageCircle className="h-4 w-4" />
-              <span>{snippet.commentsCount}</span>
-            </Button>
-            <Button variant="ghost" size="sm" className="flex items-center gap-2" onClick={() => setExplainModalOpen(true)}>
-              <Wand2 className="h-4 w-4 text-primary" />
-              <span>Explain</span>
-            </Button>
-          </div>
-          <Button variant="ghost" size="icon" onClick={handleSave}>
-            <Bookmark
-              className={cn("h-5 w-5", { "fill-current text-primary": isSaved })}
-            />
-            <span className="sr-only">Save</span>
+      <div className="flex justify-between items-center w-full">
+        <div className="flex gap-1 text-muted-foreground">
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn("flex items-center gap-2", { "text-primary": isLiked })}
+            onClick={handleLike}
+          >
+            <Heart className={cn("h-4 w-4", { "fill-current": isLiked })} />
+            <span>{likesCount}</span>
+          </Button>
+          <Button variant="ghost" size="sm" className="flex items-center gap-2" onClick={() => setShowComments(true)}>
+            <MessageCircle className="h-4 w-4" />
+            <span>{snippet.commentsCount}</span>
+          </Button>
+          <Button variant="ghost" size="sm" className="flex items-center gap-2" onClick={() => setExplainModalOpen(true)}>
+            <Wand2 className="h-4 w-4 text-primary" />
+            <span>Explain</span>
           </Button>
         </div>
-        {showComments && (
-          <div className="mt-4 pt-4 border-t">
-            <CommentSection snippetId={snippet.id} />
-          </div>
-        )}
+        <Button variant="ghost" size="icon" onClick={handleSave}>
+          <Bookmark
+            className={cn("h-5 w-5", { "fill-current text-primary": isSaved })}
+          />
+          <span className="sr-only">Save</span>
+        </Button>
       </div>
+
+      <CommentsSheet
+        open={showComments}
+        onOpenChange={setShowComments}
+        snippetId={snippet.id}
+      />
 
       <AIExplanationModal
         isOpen={isExplainModalOpen}

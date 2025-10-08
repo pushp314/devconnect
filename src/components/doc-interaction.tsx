@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { toggleDocumentLike, toggleDocumentSave } from "@/app/actions/documents";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useToast } from "@/hooks/use-toast";
-import { CommentSection } from "@/components/comments/comment-section";
+import { CommentsSheet } from "@/components/comments/comments-sheet";
 
 interface DocInteractionProps {
   doc: Document & { isLiked: boolean; isSaved: boolean; likesCount: number; commentsCount: number; };
@@ -57,7 +57,7 @@ export function DocInteraction({ doc }: DocInteractionProps) {
             <Heart className={cn("h-4 w-4", { "fill-current": isLiked })} />
             <span>{likesCount}</span>
           </Button>
-          <Button variant="ghost" size="sm" className="flex items-center gap-2" onClick={() => setShowComments(!showComments)}>
+          <Button variant="ghost" size="sm" className="flex items-center gap-2" onClick={() => setShowComments(true)}>
             <MessageCircle className="h-4 w-4" />
             <span>{doc.commentsCount}</span>
           </Button>
@@ -67,11 +67,11 @@ export function DocInteraction({ doc }: DocInteractionProps) {
           <span className="sr-only">Save</span>
         </Button>
       </div>
-      {showComments && (
-        <div className="mt-6">
-          <CommentSection documentId={doc.id} />
-        </div>
-      )}
+      <CommentsSheet
+        open={showComments}
+        onOpenChange={setShowComments}
+        documentId={doc.id}
+      />
     </>
   );
 }

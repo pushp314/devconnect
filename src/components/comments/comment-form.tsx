@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -12,13 +12,14 @@ import { addDocumentComment } from "@/app/actions/documents";
 interface CommentFormProps {
   snippetId?: string;
   documentId?: string;
+  onCommentAdded: (comment: { content: string }) => void;
 }
 
-export function CommentForm({ snippetId, documentId }: CommentFormProps) {
+export function CommentForm({ snippetId, documentId, onCommentAdded }: CommentFormProps) {
   const user = useCurrentUser();
   const { toast } = useToast();
   const [content, setContent] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,21 +32,23 @@ export function CommentForm({ snippetId, documentId }: CommentFormProps) {
       return;
     }
     
-    setIsSubmitting(true);
-    try {
-      if (snippetId) {
-        await addSnippetComment({ content, snippetId });
-      } else if (documentId) {
-        await addDocumentComment({ content, documentId });
-      }
-      setContent("");
-      toast({ title: "Comment posted!" });
-    } catch (error) {
-      console.error(error);
-      toast({ variant: "destructive", title: "Failed to post comment." });
-    } finally {
-      setIsSubmitting(false);
-    }
+    startTransition(async () => {
+        onCommentAdded({ content });
+        setContent("");
+
+        try {
+            if (snippetId) {
+                await addSnippetComment({ content, snippetId });
+            } else if (documentId) {
+                await addDocumentComment({ content, documentId });
+            }
+            toast({ title: "Comment posted!" });
+        } catch (error) {
+            console.error(error);
+            toast({ variant: "destructive", title: "Failed to post comment." });
+            // Here you might want to implement a way to remove the optimistic comment
+        }
+    });
   };
 
   if (!user) {
@@ -63,10 +66,10 @@ export function CommentForm({ snippetId, documentId }: CommentFormProps) {
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={3}
-        disabled={isSubmitting}
+        disabled={isPending}
       />
-      <Button type="submit" disabled={isSubmitting || !content.trim()} className="self-end">
-        {isSubmitting && <Loader2 className="mr-2 animate-spin" />}
+      <Button type="submit" disabled={isPending || !content.trim()} className="self-end">
+        {isPending && <Loader2 className="mr-2 animate-spin" />}
         Post Comment
       </Button>
     </form>
