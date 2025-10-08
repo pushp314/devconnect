@@ -5,6 +5,7 @@ import type { Snippet, User, Like, Comment } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
+import { FollowOnGitHubCard } from "@/components/follow-on-github-card";
 
 type PopulatedSnippet = Snippet & {
   author: User;
@@ -37,7 +38,8 @@ export default async function FeedPage() {
           </div>
         )}
       </div>
-      <aside className="hidden md:block sticky top-20 h-fit">
+      <aside className="hidden md:block sticky top-20 h-fit space-y-6">
+        <FollowOnGitHubCard />
         <AISnippetGenerator />
       </aside>
     </div>
