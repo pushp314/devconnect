@@ -37,11 +37,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   events: {
     createUser: async ({ user }) => {
+      // Generate a unique username
       if (user.email) {
-        // Create a unique username from the email
         const username = user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
         
-        // Check if username exists and append a random number if it does
         let finalUsername = username;
         let userExists = await db.user.findUnique({ where: { username: finalUsername } });
         let attempts = 0;
@@ -50,7 +49,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             userExists = await db.user.findUnique({ where: { username: finalUsername } });
             attempts++;
         }
-        if (userExists) { // Fallback for rare case of multiple collisions
+        if (userExists) { 
              finalUsername = `${username}-${Date.now()}`;
         }
 
@@ -58,6 +57,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: { id: user.id },
           data: { username: finalUsername },
         });
+      }
+
+      // Automatically follow the admin account
+      const adminEmail = 'pusprajsharma314@gmail.com';
+      if (user.email !== adminEmail) {
+        const adminUser = await db.user.findUnique({
+          where: { email: adminEmail },
+        });
+
+        if (adminUser) {
+          await db.follows.create({
+            data: {
+              followerId: user.id,
+              followingId: adminUser.id,
+            },
+          });
+        }
       }
     },
   },

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -20,6 +21,9 @@ export function FollowButton({ targetUserId, isFollowing: initialIsFollowing }: 
     
     const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
     const [isPending, setIsPending] = useState(false);
+
+    // Hardcode admin ID to make non-unfollowable
+    const adminUserId = "clz7e0k0w00001or8y8u6k3a7"; // This should be the ID of pusprajsharma314@gmail.com
 
     const handleFollow = async () => {
         if (!user) {
@@ -49,6 +53,11 @@ export function FollowButton({ targetUserId, isFollowing: initialIsFollowing }: 
     }
 
     if (!user || user.id === targetUserId) {
+        return null;
+    }
+    
+    // Do not render the button on the admin's profile page
+    if (targetUserId === 'clz7e0k0w00001or8y8u6k3a7') { // Hardcoded ID of admin
         return null;
     }
     
