@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, ShieldCheck } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -11,12 +10,12 @@ const adminNavItems = [
     {
         title: "Dashboard",
         href: "/admin",
-        icon: LayoutDashboard,
+        icon: "LayoutDashboard",
     },
     {
         title: "Approvals",
         href: "/admin/components",
-        icon: ShieldCheck,
+        icon: "ShieldCheck",
     },
 ];
 
