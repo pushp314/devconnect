@@ -45,17 +45,17 @@ export async function SnippetCard({ snippet }: SnippetCardProps) {
         </div>
          {isAuthor && <SnippetActionsMenu snippetId={snippet.id} />}
       </CardHeader>
-      <div className="flex-grow overflow-y-auto">
-        <CardContent className="space-y-4">
-            <p className="text-sm">{snippet.description}</p>
+      <CardContent className="flex-1 flex flex-col min-h-0">
+          <p className="text-sm flex-shrink-0">{snippet.description}</p>
+          <div className="flex-grow my-4 overflow-y-auto rounded-lg border">
             <CodeBlock code={snippet.code} language={snippet.language.toLowerCase()} />
-            <div className="mt-4 flex flex-wrap gap-2">
-            {snippet.tags.map((tag) => (
-                <Badge key={tag} variant="secondary">{tag}</Badge>
-            ))}
-            </div>
-        </CardContent>
-      </div>
+          </div>
+          <div className="mt-auto flex flex-wrap gap-2 flex-shrink-0">
+          {snippet.tags.map((tag) => (
+              <Badge key={tag} variant="secondary">{tag}</Badge>
+          ))}
+          </div>
+      </CardContent>
       <CardFooter className="flex-shrink-0">
         <SnippetInteraction snippet={snippet} />
       </CardFooter>
