@@ -32,14 +32,15 @@ export async function getMarketplaceComponents({ query }: { query?: string }) {
 }
 
 export async function getMarketplaceComponentById(id: string) {
+    const session = await auth();
     const component = await db.component.findUnique({
-        where: { id, status: 'approved' },
+        where: { id }, // Allow viewing pending components if you have the link
         include: {
             creator: true,
         },
     });
 
-    if (!component) {
+    if (!component || (component.status !== 'approved' && component.creatorId !== session?.user?.id)) {
         notFound();
     }
     
@@ -152,5 +153,40 @@ export async function downloadFreeComponent(componentId: string) {
         await createOrder({ componentId, amount: 0 });
     }
 
+    revalidatePath(`/components-marketplace/${componentId}`);
     return { fileUrl: component.zipFileUrl };
+}
+
+
+export async function getPurchasedComponentsForUser() {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return [];
+    }
+
+    const orders = await db.order.findMany({
+        where: { userId: session.user.id },
+        include: {
+            component: true,
+        },
+        orderBy: {
+            createdAt: 'desc'
+        }
+    });
+
+    return orders.map(order => order.component);
+}
+
+export async function getUploadedComponentsForUser() {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return [];
+    }
+
+    return db.component.findMany({
+        where: { creatorId: session.user.id },
+        orderBy: {
+            createdAt: 'desc'
+        }
+    });
 }
