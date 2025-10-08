@@ -13,8 +13,8 @@ export default async function AdminComponentsPage() {
     const pendingComponents = await getPendingComponents();
 
   return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold font-headline mb-6">Admin - Component Approvals</h1>
+    <div>
+      <h1 className="text-3xl font-bold font-headline mb-6">Component Approvals</h1>
         {pendingComponents.length > 0 ? (
              <div className="space-y-6">
                 {pendingComponents.map(comp => (

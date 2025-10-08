@@ -12,6 +12,7 @@ import {
   User,
   ShoppingBag,
   ShieldCheck,
+  LayoutDashboard,
 } from 'lucide-react';
 
 export const navSections = [
@@ -39,7 +40,7 @@ export const navSections = [
       { label: 'Profile', href: `/profile/me`, icon: User },
       { label: 'Saved', href: '/saved', icon: Bookmark },
       { label: 'Settings', href: '/settings', icon: Settings },
-      { label: 'Admin', href: '/admin/components', icon: ShieldCheck },
+      { label: 'Admin', href: '/admin', icon: ShieldCheck },
     ],
   },
 ];
