@@ -1,6 +1,5 @@
 import { getAdminDashboardAnalytics } from "../actions/admin";
 import { AnalyticsCard } from "./_components/analytics-card";
-import { DollarSign, PackageCheck, PackageClock, Users } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Role } from "@prisma/client";
@@ -20,25 +19,25 @@ export default async function AdminDashboardPage() {
                 <AnalyticsCard
                     title="Total Revenue"
                     value={`₹${analytics.totalRevenue.toFixed(2)}`}
-                    icon={<DollarSign />}
+                    icon="DollarSign"
                     description="Total amount from all sales"
                 />
                 <AnalyticsCard
                     title="Total Sales"
                     value={analytics.totalSales}
-                    icon={<PackageCheck />}
+                    icon="PackageCheck"
                     description="Total number of components sold"
                 />
                 <AnalyticsCard
                     title="Pending Approvals"
                     value={analytics.pendingComponents}
-                    icon={<PackageClock />}
+                    icon="PackageClock"
                     description="Components waiting for review"
                 />
                 <AnalyticsCard
                     title="Total Users"
                     value={analytics.totalUsers}
-                    icon={<Users />}
+                    icon="Users"
                     description="Total registered users"
                 />
             </div>

@@ -1,19 +1,24 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import * as LucideIcons from "lucide-react";
+
+type IconName = keyof typeof LucideIcons;
 
 interface AnalyticsCardProps {
   title: string;
   value: string | number;
-  icon: React.ReactNode;
+  icon: IconName;
   description?: string;
 }
 
 export function AnalyticsCard({ title, value, icon, description }: AnalyticsCardProps) {
+  const Icon = LucideIcons[icon] as React.ElementType;
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <div className="text-muted-foreground">{icon}</div>
+        {Icon && <div className="text-muted-foreground"><Icon className="h-4 w-4" /></div>}
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
