@@ -71,6 +71,7 @@ export function MobileSidebar() {
 
                            const isActive = pathname.startsWith(link.href);
                            const isMarketplace = link.label === 'Marketplace';
+                           const Icon = link.icon;
                            const SecondaryIcon = link.secondaryIcon;
 
                            return (
@@ -84,7 +85,7 @@ export function MobileSidebar() {
                                 isMarketplace && 'bg-primary/5 border border-primary/20 text-primary hover:bg-primary/10'
                                 )}
                             >
-                                <link.icon className="h-4 w-4" />
+                                <Icon className="h-4 w-4" />
                                 <span className="flex-1">{link.label}</span>
                                 {SecondaryIcon && <SecondaryIcon className="h-4 w-4" />}
                             </Link>
