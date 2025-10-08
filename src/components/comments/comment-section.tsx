@@ -77,7 +77,7 @@ export function CommentSection({ snippetId, documentId, isSheet = false }: Comme
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-baseline gap-2">
-                  <Link href={`/profile/${comment.author?.username}`} className="font-semibold text-sm hover:underline">
+                  <Link href={`/${comment.author?.username}`} className="font-semibold text-sm hover:underline">
                     {comment.author?.name}
                   </Link>
                   <time className="text-xs text-muted-foreground">

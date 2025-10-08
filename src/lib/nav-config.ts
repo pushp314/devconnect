@@ -36,7 +36,7 @@ export const navSections = [
   {
     title: 'Personal',
     items: [
-      { label: 'Profile', href: '/profile/[[username]]', icon: User },
+      { label: 'Profile', href: '/[[username]]', icon: User },
       { label: 'Saved', href: '/saved', icon: Bookmark },
       { label: 'Settings', href: '/settings', icon: Settings },
       { label: 'Admin', href: '/admin', icon: ShieldCheck },

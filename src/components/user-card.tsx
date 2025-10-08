@@ -16,14 +16,14 @@ export async function UserCard({ user }: UserCardProps) {
     <Card className="text-center transition-all hover:shadow-lg hover:border-primary/50 flex flex-col">
       <CardHeader>
         <div className="flex flex-col items-center gap-4">
-            <Link href={`/profile/${user.username}`}>
+            <Link href={`/${user.username}`}>
                 <Avatar className="h-20 w-20 border-2 border-primary">
                     <AvatarImage src={user.image ?? undefined} alt={user.name ?? ''} data-ai-hint="person face" />
                     <AvatarFallback className="text-2xl">{userInitials}</AvatarFallback>
                 </Avatar>
             </Link>
             <div>
-                <Link href={`/profile/${user.username}`}>
+                <Link href={`/${user.username}`}>
                     <h3 className="text-lg font-bold font-headline hover:underline">{user.name}</h3>
                 </Link>
                 <p className="text-sm text-muted-foreground">@{user.username}</p>
@@ -36,7 +36,7 @@ export async function UserCard({ user }: UserCardProps) {
         </p>
         <div className="mt-auto">
             <Button asChild variant="outline" size="sm">
-                <Link href={`/profile/${user.username}`}>
+                <Link href={`/${user.username}`}>
                     View Profile
                     <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>

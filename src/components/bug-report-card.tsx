@@ -77,7 +77,7 @@ export function BugReportCard({ bug }: BugReportCardProps) {
             <AvatarFallback>{bug.reporter.name?.charAt(0)}</AvatarFallback>
           </Avatar>
           <Link
-            href={`/profile/${bug.reporter.username}`}
+            href={`/${bug.reporter.username}`}
             className="font-semibold hover:underline"
           >
             {bug.reporter.name}

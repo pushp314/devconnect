@@ -22,7 +22,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
           <AvatarFallback>{userInitials}</AvatarFallback>
         </Avatar>
         <div className="flex-1">
-          <Link href={`/profile/${user.username}`} className="font-semibold hover:underline">{user.name}</Link>
+          <Link href={`/${user.username}`} className="font-semibold hover:underline">{user.name}</Link>
           <p className="text-xs text-muted-foreground">{new Date(review.createdAt).toLocaleDateString()}</p>
         </div>
         <StarRating rating={review.rating} />

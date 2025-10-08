@@ -29,7 +29,7 @@ export async function SnippetCard({ snippet }: SnippetCardProps) {
   return (
     <Card id={snippet.id} className="h-full max-h-[550px] flex flex-col transition-all hover:shadow-lg hover:border-primary/50">
       <CardHeader className="flex-shrink-0 flex flex-row items-start gap-4 space-y-0">
-        <Link href={`/profile/${snippet.author.username}`}>
+        <Link href={`/${snippet.author.username}`}>
             <Avatar>
             <AvatarImage src={snippet.author.image ?? undefined} alt={snippet.author.name ?? ''} data-ai-hint="person face" />
             <AvatarFallback>{snippet.author.name?.charAt(0)}</AvatarFallback>
@@ -38,7 +38,7 @@ export async function SnippetCard({ snippet }: SnippetCardProps) {
         <div className="flex-1">
           <CardTitle className="font-headline text-xl mb-1">{snippet.title}</CardTitle>
           <div className="text-sm text-muted-foreground">
-            <Link href={`/profile/${snippet.author.username}`} className="font-semibold hover:underline">
+            <Link href={`/${snippet.author.username}`} className="font-semibold hover:underline">
               {snippet.author.name}
             </Link>
             <span className="mx-2 hidden sm:inline">·</span>
