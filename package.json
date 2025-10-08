@@ -68,8 +68,5 @@
     "tailwindcss": "^3.4.6",
     "tsx": "^4.16.2",
     "typescript": "^5"
-  },
-  "overrides": {
-    "@prisma/engines": "5.17.0"
   }
 }
