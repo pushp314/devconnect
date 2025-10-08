@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { MainNav } from "@/components/layout/main-nav";
 import { UserNav } from "@/components/layout/user-nav";
 import { Button } from "@/components/ui/button";
-import { Code, PlusCircle, Bell, Menu } from "lucide-react";
+import { Code, PlusCircle, Menu } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +11,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { NotificationBell } from "./notification-bell";
 import { auth } from "@/lib/auth";
+import { MainNav } from "./main-nav";
 
 export async function Header() {
   const session = await auth();
@@ -35,26 +35,26 @@ export async function Header() {
               <span className="sr-only">Toggle Menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="pr-0">
-            <Link href="/feed" className="flex items-center space-x-2 mb-4">
+          <SheetContent side="left" className="pr-0 pt-12">
+            <Link href="/feed" className="flex items-center space-x-2 mb-6 px-4">
                 <Code className="h-6 w-6 text-primary" />
                 <span className="font-bold font-headline">
                 CodeStudio
                 </span>
             </Link>
-            <div className="my-4 h-[calc(100vh-8rem)] pb-10 pl-6">
+            <div className="h-[calc(100vh-8rem)] overflow-y-auto">
               <MainNav isMobile={true} />
             </div>
           </SheetContent>
         </Sheet>
         
-        <div className="flex flex-1 items-center justify-end space-x-4">
-          <nav className="flex items-center space-x-2">
+        <div className="flex flex-1 items-center justify-end space-x-2 sm:space-x-4">
+          <nav className="flex items-center space-x-1 sm:space-x-2">
             {session?.user && (
               <>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button>
+                    <Button variant="default" size="sm">
                       <PlusCircle className="h-4 w-4 mr-2" />
                       Create
                     </Button>
