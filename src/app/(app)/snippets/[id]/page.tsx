@@ -11,7 +11,7 @@ export default async function SnippetDetailPage({ params }: { params: { id: stri
 
   return (
     <div className="container py-8 max-w-2xl mx-auto">
-      <SnippetCard snippet={snippet as any} />
+      <SnippetCard snippet={snippet} />
     </div>
   );
 }

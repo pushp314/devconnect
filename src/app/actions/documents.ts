@@ -45,7 +45,7 @@ export async function createDocument(values: z.infer<typeof docSchema>) {
   });
 
   revalidatePath('/docs');
-  revalidatePath(`/profile/${session.user.username}`);
+  revalidatePath(`/${session.user.username}`);
   return newDoc;
 }
 
@@ -80,9 +80,9 @@ export async function updateDocument(values: z.infer<typeof updateDocSchema>) {
     },
   });
 
-  revalidatePath(`/docs/${updatedDoc.slug}`);
+  revalidateTag(`doc:${updatedDoc.slug}`);
   revalidatePath('/docs');
-  revalidatePath(`/profile/${session.user.username}`);
+  revalidatePath(`/${session.user.username}`);
 
   return updatedDoc;
 }
@@ -100,7 +100,7 @@ export async function deleteDocument(documentId: string) {
   await db.document.delete({ where: { id: documentId } });
 
   revalidatePath('/docs');
-  revalidatePath(`/profile/${session.user.username}`);
+  revalidatePath(`/${session.user.username}`);
   redirect('/docs');
 }
 
@@ -117,7 +117,13 @@ export async function getDocuments({ query }: { query?: string }) {
     },
     orderBy: { createdAt: 'desc' },
     include: {
-      author: true,
+      author: {
+        select: {
+          name: true,
+          image: true,
+          username: true,
+        }
+      },
       _count: {
         select: {
           likes: true,
@@ -135,10 +141,17 @@ export async function getDocumentBySlug(slug: string) {
   const doc = await db.document.findUnique({
     where: { slug },
     include: {
-      author: true,
+      author: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          username: true,
+        },
+      },
       likes: {
         where: {
-          userId: currentUserId,
+          userId: currentUserId ?? undefined,
         },
         select: {
           userId: true,
@@ -146,7 +159,7 @@ export async function getDocumentBySlug(slug: string) {
       },
       savedBy: {
         where: {
-          userId: currentUserId,
+          userId: currentUserId ?? undefined,
         },
         select: {
           userId: true,
@@ -207,7 +220,6 @@ export async function toggleDocumentLike(documentId: string) {
     }
   }
   revalidateTag(`doc:${doc.slug}`);
-  revalidateTag(`doc:${doc.id}:interactions`);
 }
 
 export async function toggleDocumentSave(documentId: string) {
@@ -237,7 +249,6 @@ export async function toggleDocumentSave(documentId: string) {
     });
   }
   revalidateTag(`doc:${doc.slug}`);
-  revalidateTag(`doc:${doc.id}:interactions`);
   revalidatePath('/saved');
 }
 
@@ -279,15 +290,20 @@ export async function addDocumentComment(values: z.infer<typeof commentSchema>) 
     });
   }
 
-  revalidateTag(`doc:${doc.slug}:comments`);
-  revalidateTag(`doc:${doc.id}:interactions`);
+  revalidateTag(`doc:${doc.slug}`);
 }
 
 export async function getDocumentComments(documentId: string) {
   return db.documentComment.findMany({
     where: { documentId },
     include: {
-      author: true,
+      author: {
+        select: {
+          name: true,
+          image: true,
+          username: true,
+        },
+      },
     },
     orderBy: {
       createdAt: 'asc',

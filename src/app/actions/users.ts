@@ -2,7 +2,7 @@
 
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
 import { createNotification } from './notifications';
 import type { User, Snippet, Document, Like, Comment, SavedSnippet, DocumentSave, DocumentLike, DocumentComment, Follows } from '@prisma/client';
@@ -43,8 +43,6 @@ export async function getUserProfile(username: string) {
   const user = await db.user.findUnique({
     where: { username },
     include: {
-      followers: true,
-      following: true,
       _count: {
         select: {
           followers: true,
@@ -105,9 +103,8 @@ export async function getUserProfile(username: string) {
     },
     orderBy: { createdAt: 'desc' },
     include: {
-      author: true,
-      likes: true,
-      comments: true,
+      author: { select: { name: true, image: true, username: true } },
+      likes: { select: { userId: true } },
       _count: { select: { likes: true, comments: true } },
     },
   });
@@ -116,9 +113,7 @@ export async function getUserProfile(username: string) {
     where: { authorId: user.id },
     orderBy: { createdAt: 'desc' },
     include: {
-      author: true,
-      likes: true,
-      comments: true,
+      author: { select: { name: true, image: true, username: true } },
       _count: { select: { likes: true, comments: true } },
     },
   });
@@ -128,9 +123,8 @@ export async function getUserProfile(username: string) {
     include: {
       snippet: {
         include: {
-          author: true,
-          likes: true,
-          comments: true,
+          author: { select: { name: true, image: true, username: true } },
+          likes: { select: { userId: true } },
           _count: { select: { likes: true, comments: true } },
         },
       },
@@ -142,9 +136,7 @@ export async function getUserProfile(username: string) {
     include: {
       document: {
         include: {
-          author: true,
-          likes: true,
-          comments: true,
+          author: { select: { name: true, image: true, username: true } },
           _count: { select: { likes: true, comments: true } },
         },
       },
@@ -232,7 +224,7 @@ export async function toggleFollow(targetUserId: string) {
     },
   });
 
-  const targetUser = await db.user.findUnique({ where: { id: targetUserId } });
+  const targetUser = await db.user.findUnique({ where: { id: targetUserId }, select: { username: true } });
   if (!targetUser || !targetUser.username) throw new Error('Target user not found');
 
   if (existingFollow) {
@@ -309,6 +301,12 @@ export async function getUsers({ query }: { query?: string }) {
       name: 'asc',
     },
     take: 10,
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      image: true,
+    }
   });
 }
 
@@ -324,10 +322,9 @@ export async function getSavedItems() {
         include: {
             snippet: {
                 include: {
-                    author: true,
-                    likes: true,
-                    comments: true,
-                    savedBy: true,
+                    author: { select: { name: true, image: true, username: true } },
+                    likes: { select: { userId: true } },
+                    savedBy: { select: { userId: true } },
                     _count: { select: { likes: true, comments: true } },
                 }
             }
@@ -340,9 +337,7 @@ export async function getSavedItems() {
         include: {
             document: {
                 include: {
-                    author: true,
-                    likes: true,
-                    comments: true,
+                    author: { select: { name: true, image: true, username: true } },
                     _count: { select: { likes: true, comments: true } },
                 }
             }
@@ -408,12 +403,12 @@ export async function getRecommendedItems() {
         where: { visibility: 'public' },
         orderBy: { likes: { _count: 'desc' } },
         take: 10,
-        include: { author: true, likes: true, comments: true, savedBy: true, _count: { select: { likes: true, comments: true } } }
+        include: { author: { select: { name: true, image: true, username: true } }, likes: { select: { userId: true } }, savedBy: { select: { userId: true } }, _count: { select: { likes: true, comments: true } } }
       });
        const popularDocs = await db.document.findMany({
         orderBy: { likes: { _count: 'desc' } },
         take: 10,
-        include: { author: true, likes: true, comments: true, _count: { select: { likes: true, comments: true } } }
+        include: { author: { select: { name: true, image: true, username: true } }, _count: { select: { likes: true, comments: true } } }
       });
       return { 
           recommendedSnippets: popularSnippets.map(snippet => ({
@@ -460,7 +455,7 @@ export async function getRecommendedItems() {
       },
       take: 10,
       orderBy: { likes: { _count: 'desc' } },
-      include: { author: true, likes: true, comments: true, savedBy: true, _count: { select: { likes: true, comments: true } } }
+      include: { author: { select: { name: true, image: true, username: true } }, likes: { select: { userId: true } }, savedBy: { select: { userId: true } }, _count: { select: { likes: true, comments: true } } }
     });
 
      const recommendedDocs = await db.document.findMany({
@@ -470,7 +465,7 @@ export async function getRecommendedItems() {
       },
       take: 10,
       orderBy: { likes: { _count: 'desc' } },
-      include: { author: true, likes: true, comments: true, _count: { select: { likes: true, comments: true } } }
+      include: { author: { select: { name: true, image: true, username: true } }, _count: { select: { likes: true, comments: true } } }
     });
   
     return { 
@@ -573,7 +568,14 @@ export async function getBlockedUsers() {
     const blocks = await db.blockedUser.findMany({
         where: { blockerId: currentUserId },
         include: {
-            blocked: true,
+            blocked: {
+                select: {
+                    id: true,
+                    name: true,
+                    username: true,
+                    image: true,
+                }
+            },
         }
     });
 

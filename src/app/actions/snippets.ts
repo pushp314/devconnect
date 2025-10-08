@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { createNotification } from './notifications';
 import { redirect } from 'next/navigation';
 
@@ -92,10 +92,10 @@ export async function updateSnippet(values: z.infer<typeof updateSnippetFormSche
         },
     });
 
+    revalidateTag(`snippet:${id}`);
     revalidatePath('/feed');
     revalidatePath('/explore');
     revalidatePath(`/${session.user.username}`);
-    revalidatePath(`/snippets/${id}`);
     
     return updatedSnippet;
 }
@@ -107,12 +107,38 @@ export async function getSnippetById(id: string) {
     const snippet = await db.snippet.findUnique({ 
         where: { id },
         include: {
-            author: true,
+            author: {
+                select: {
+                    id: true,
+                    name: true,
+                    image: true,
+                    username: true,
+                },
+            },
             forkedFrom: {
-                include: {
-                    author: true,
-                }
-            }
+                select: {
+                    id: true,
+                    author: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                },
+            },
+             likes: {
+                where: { userId: currentUserId ?? undefined },
+                select: { userId: true },
+            },
+            savedBy: {
+                where: { userId: currentUserId ?? undefined },
+                select: { userId: true },
+            },
+            _count: {
+                select: {
+                    likes: true,
+                    comments: true,
+                },
+            },
         }
     });
 
@@ -134,7 +160,13 @@ export async function getSnippetById(id: string) {
         }
     }
     
-    return snippet;
+    return {
+        ...snippet,
+        likesCount: snippet._count.likes,
+        commentsCount: snippet._count.comments,
+        isLiked: snippet.likes.length > 0,
+        isSaved: snippet.savedBy.length > 0,
+    };
 }
 
 export async function forkSnippet(snippetId: string) {
@@ -234,10 +266,21 @@ export async function getSnippets({ page = 1, limit = 20, query, language, sortB
         where: whereClause,
         orderBy: orderBy,
         include: {
-            author: true,
-            likes: true,
-            comments: true,
-            savedBy: true,
+            author: {
+                select: {
+                    name: true,
+                    image: true,
+                    username: true,
+                }
+            },
+            likes: {
+                where: { userId: currentUserId ?? undefined },
+                select: { userId: true },
+            },
+            savedBy: {
+                where: { userId: currentUserId ?? undefined },
+                select: { userId: true },
+            },
             _count: {
                 select: {
                     likes: true,
@@ -251,8 +294,8 @@ export async function getSnippets({ page = 1, limit = 20, query, language, sortB
         ...snippet,
         likesCount: snippet._count.likes,
         commentsCount: snippet._count.comments,
-        isLiked: currentUserId ? !!snippet.likes.find(like => like.userId === currentUserId) : false,
-        isSaved: currentUserId ? !!snippet.savedBy.find(save => save.userId === currentUserId) : false,
+        isLiked: snippet.likes.length > 0,
+        isSaved: snippet.savedBy.length > 0,
     }));
 }
 
@@ -292,9 +335,7 @@ export async function toggleSnippetLike(snippetId: string) {
             });
         }
     }
-    revalidatePath('/feed');
-    revalidatePath('/explore');
-    revalidatePath(`/snippets/${snippetId}`);
+    revalidateTag(`snippet:${snippetId}`);
 }
 
 export async function toggleSnippetSave(snippetId: string) {
@@ -321,8 +362,7 @@ export async function toggleSnippetSave(snippetId: string) {
         });
     }
     
-    revalidatePath('/feed');
-    revalidatePath('/explore');
+    revalidateTag(`snippet:${snippetId}`);
     revalidatePath('/saved');
 }
 
@@ -371,7 +411,7 @@ export async function addSnippetComment(values: z.infer<typeof commentSchema>) {
 
   const { content, snippetId } = validatedFields.data;
   
-  const snippet = await db.snippet.findUnique({ where: { id: snippetId }, include: { author: true }});
+  const snippet = await db.snippet.findUnique({ where: { id: snippetId }, select: { id: true, title: true, authorId: true, author: { select: { username: true } } }});
   if (!snippet) throw new Error('Snippet not found');
 
   await db.comment.create({
@@ -419,16 +459,20 @@ export async function addSnippetComment(values: z.infer<typeof commentSchema>) {
       }
   }
 
-  revalidatePath('/feed');
-  revalidatePath('/explore');
-  revalidatePath(`/snippets/${snippetId}`);
+  revalidateTag(`snippet:${snippetId}`);
 }
 
 export async function getSnippetComments(snippetId: string) {
   return db.comment.findMany({
     where: { snippetId },
     include: {
-      author: true,
+      author: {
+        select: {
+          name: true,
+          image: true,
+          username: true,
+        },
+      },
     },
     orderBy: {
       createdAt: 'asc',
