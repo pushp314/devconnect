@@ -76,7 +76,7 @@ model User {
   username                String?   @unique
   bio                     String?
   githubUrl               String?
-  twitterUrl              String?
+  instagramUrl            String?
   isBlocked               Boolean   @default(false)
   role                    Role      @default(USER)
   purchasedComponentIds   String[]
@@ -104,6 +104,11 @@ model User {
   bugUpvotes       BugUpvote[]
   bugComments      BugComment[]
   createdComponents Component[]
+
+  blocking        BlockedUser[] @relation("Blocking")
+  blockedBy       BlockedUser[] @relation("BlockedBy")
+  reportsMade     UserReport[]  @relation("ReportsMade")
+  reportsReceived UserReport[]  @relation("ReportsReceived")
 }
 
 model Follows {
@@ -329,4 +334,29 @@ model BugComment {
   author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   bugId    String
   bug      Bug    @relation(fields: [bugId], references: [id], onDelete: Cascade)
+}
+
+// --- USER BLOCKING & REPORTING ---
+
+model BlockedUser {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  blockerId String
+  blocker   User   @relation("Blocking", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String
+  blocked   User   @relation("BlockedBy", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+}
+
+model UserReport {
+  id        String   @id @default(cuid())
+  reason    String
+  createdAt DateTime @default(now())
+
+  reporterId String
+  reporter   User   @relation("ReportsMade", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedId String
+  reported   User   @relation("ReportsReceived", fields: [reportedId], references: [id], onDelete: Cascade)
 }
