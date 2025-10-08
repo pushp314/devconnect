@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -9,6 +9,9 @@ import { Loader2 } from "lucide-react";
 import { addSnippetComment } from "@/app/actions/snippets";
 import { addDocumentComment } from "@/app/actions/documents";
 import { addBugComment } from "@/app/actions/bugs";
+import { MentionsDropdown } from "./mentions-dropdown";
+import { getUsers } from "@/app/actions/users";
+import type { User } from "@prisma/client";
 
 interface CommentFormProps {
   snippetId?: string;
@@ -22,6 +25,55 @@ export function CommentForm({ snippetId, documentId, bugId, onCommentAdded }: Co
   const { toast } = useToast();
   const [content, setContent] = useState("");
   const [isPending, startTransition] = useTransition();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // For @mentions
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+        if (mentionQuery.length > 0) {
+            const fetchedUsers = await getUsers({ query: mentionQuery });
+            setUsers(fetchedUsers);
+        } else {
+            setUsers([]);
+        }
+    };
+    if (showMentions) {
+        fetchUsers();
+    }
+  }, [mentionQuery, showMentions]);
+
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value;
+    setContent(text);
+
+    const cursorPosition = e.target.selectionStart;
+    const textBeforeCursor = text.substring(0, cursorPosition);
+    const mentionMatch = textBeforeCursor.match(/@(\w+)$/);
+
+    if (mentionMatch) {
+      setMentionQuery(mentionMatch[1]);
+      setShowMentions(true);
+    } else {
+      setShowMentions(false);
+    }
+  };
+
+  const handleMentionSelect = (username: string) => {
+    const cursorPosition = textareaRef.current?.selectionStart || 0;
+    const textBeforeCursor = content.substring(0, cursorPosition);
+    const textAfterCursor = content.substring(cursorPosition);
+    
+    const newText = textBeforeCursor.replace(/@(\w+)$/, `@${username} `) + textAfterCursor;
+    setContent(newText);
+    setShowMentions(false);
+    textareaRef.current?.focus();
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,18 +116,27 @@ export function CommentForm({ snippetId, documentId, bugId, onCommentAdded }: Co
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-      <Textarea
-        placeholder="Add a comment..."
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        rows={3}
-        disabled={isPending}
-      />
-      <Button type="submit" disabled={isPending || !content.trim()} className="self-end">
-        {isPending && <Loader2 className="mr-2 animate-spin" />}
-        Post Comment
-      </Button>
-    </form>
+    <div className="relative">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+        <Textarea
+          ref={textareaRef}
+          placeholder="Add a comment... use '@' to mention a user."
+          value={content}
+          onChange={handleInputChange}
+          rows={3}
+          disabled={isPending}
+        />
+        <Button type="submit" disabled={isPending || !content.trim()} className="self-end">
+          {isPending && <Loader2 className="mr-2 animate-spin" />}
+          Post Comment
+        </Button>
+      </form>
+       {showMentions && (
+        <MentionsDropdown
+          users={users}
+          onSelect={handleMentionSelect}
+        />
+      )}
+    </div>
   );
 }

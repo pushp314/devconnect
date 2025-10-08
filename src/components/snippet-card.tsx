@@ -14,11 +14,12 @@ import { SnippetActionsMenu } from "./snippet-actions-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReactLivePreview } from "./preview/ReactLivePreview";
 import { isCodeSafeForPreview } from "@/lib/previewSecurity";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, GitFork, Lock, Globe, Users } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { HTMLPreview } from "./preview/HTMLPreview";
 import { JSPreview } from "./preview/JSPreview";
 import { PyodidePreview } from "./preview/PyodidePreview";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 type PopulatedSnippet = Snippet & {
   author: User;
@@ -28,6 +29,7 @@ type PopulatedSnippet = Snippet & {
   commentsCount: number;
   isLiked?: boolean;
   isSaved?: boolean;
+  forkedFrom?: Snippet & { author: User };
 };
 
 interface SnippetCardProps {
@@ -111,15 +113,32 @@ export function SnippetCard({ snippet }: SnippetCardProps) {
         </Link>
         <div className="flex-1">
           <CardTitle className="font-headline text-xl mb-1">{snippet.title}</CardTitle>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground flex items-center flex-wrap gap-x-2">
             <Link href={`/${snippet.author.username}`} className="font-semibold hover:underline">
               {snippet.author.name}
             </Link>
-            <span className="mx-2 hidden sm:inline">·</span>
-            <time dateTime={snippet.createdAt.toISOString()} className="hidden sm:inline">{snippet.createdAt.toLocaleDateString()}</time>
+            <span className="hidden sm:inline">·</span>
+            <time dateTime={snippet.createdAt.toISOString()} className="hidden sm:inline">{new Date(snippet.createdAt).toLocaleDateString()}</time>
+            {snippet.forkedFrom && (
+                <span className="text-xs flex items-center gap-1">
+                    <GitFork className="h-3 w-3" /> Forked from <Link href={`/snippets/${snippet.forkedFrom.id}`} className="font-medium hover:underline">{snippet.forkedFrom.author.name}</Link>
+                </span>
+            )}
           </div>
         </div>
-         {isAuthor && <SnippetActionsMenu snippetId={snippet.id} />}
+        <div className="flex items-center gap-1">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                {snippet.visibility === 'public' ? <Globe className="h-4 w-4 text-muted-foreground" /> : <Users className="h-4 w-4 text-muted-foreground" />}
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{snippet.visibility === 'public' ? 'Public' : 'Private (Followers only)'}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          {isAuthor && <SnippetActionsMenu snippetId={snippet.id} />}
+        </div>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col min-h-0">
           <p className="text-sm flex-shrink-0 mb-4">{snippet.description}</p>

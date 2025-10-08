@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import { createNotification } from './notifications';
+import { redirect } from 'next/navigation';
 
 const snippetFormSchema = z.object({
   title: z.string().min(5).max(100),
@@ -12,6 +13,8 @@ const snippetFormSchema = z.object({
   language: z.string(),
   code: z.string().min(10),
   tags: z.array(z.string()).min(1).max(10),
+  visibility: z.string().optional().default('public'),
+  allowForks: z.boolean().optional().default(true),
 });
 
 export async function createSnippet(values: z.infer<typeof snippetFormSchema>) {
@@ -26,7 +29,7 @@ export async function createSnippet(values: z.infer<typeof snippetFormSchema>) {
     throw new Error('Invalid snippet data.');
   }
 
-  const { title, description, language, code, tags } = validatedFields.data;
+  const { title, description, language, code, tags, visibility, allowForks } = validatedFields.data;
 
   const snippet = await db.snippet.create({
     data: {
@@ -37,12 +40,14 @@ export async function createSnippet(values: z.infer<typeof snippetFormSchema>) {
       tags: {
         set: tags,
       },
+      visibility,
+      allowForks,
       authorId: session.user.id,
     },
   });
 
   revalidatePath('/feed');
-  revalidatePath(`/profile/${session.user.username}`);
+  revalidatePath(`/${session.user.username}`);
   return snippet;
 }
 
@@ -61,7 +66,7 @@ export async function updateSnippet(values: z.infer<typeof updateSnippetFormSche
         throw new Error('Invalid snippet data.');
     }
 
-    const { id, title, description, language, code, tags } = validatedFields.data;
+    const { id, title, description, language, code, tags, visibility, allowForks } = validatedFields.data;
 
     const snippetToUpdate = await db.snippet.findUnique({ where: { id } });
     if (!snippetToUpdate) {
@@ -79,31 +84,136 @@ export async function updateSnippet(values: z.infer<typeof updateSnippetFormSche
             language,
             code,
             tags: { set: tags },
+            visibility,
+            allowForks,
         },
     });
 
     revalidatePath('/feed');
     revalidatePath('/explore');
-    revalidatePath(`/profile/${session.user.username}`);
+    revalidatePath(`/${session.user.username}`);
+    revalidatePath(`/snippets/${id}`);
     
     return updatedSnippet;
 }
 
 export async function getSnippetById(id: string) {
-    return db.snippet.findUnique({ where: { id } });
+    const session = await auth();
+    const currentUserId = session?.user?.id;
+
+    const snippet = await db.snippet.findUnique({ 
+        where: { id },
+        include: {
+            author: true,
+            forkedFrom: {
+                include: {
+                    author: true,
+                }
+            }
+        }
+    });
+
+    if (!snippet) return null;
+
+    if (snippet.visibility === 'private') {
+        if (!currentUserId) return null; // Not logged in, can't see private
+        if (snippet.authorId !== currentUserId) {
+            // Check if current user is a follower
+            const isFollower = await db.follows.findUnique({
+                where: {
+                    followerId_followingId: {
+                        followerId: currentUserId,
+                        followingId: snippet.authorId
+                    }
+                }
+            });
+            if (!isFollower) return null; // Not the author and not a follower
+        }
+    }
+    
+    return snippet;
+}
+
+export async function forkSnippet(snippetId: string) {
+    const session = await auth();
+    if (!session?.user?.id || !session.user.username) {
+        throw new Error('You must be logged in to fork a snippet.');
+    }
+
+    const originalSnippet = await db.snippet.findUnique({
+        where: { id: snippetId },
+    });
+
+    if (!originalSnippet || !originalSnippet.allowForks) {
+        throw new Error('This snippet cannot be forked.');
+    }
+    
+    if (originalSnippet.authorId === session.user.id) {
+        throw new Error("You cannot fork your own snippet.");
+    }
+
+    const forkedSnippet = await db.snippet.create({
+        data: {
+            title: `Fork of ${originalSnippet.title}`,
+            description: originalSnippet.description,
+            language: originalSnippet.language,
+            code: originalSnippet.code,
+            tags: originalSnippet.tags,
+            authorId: session.user.id,
+            visibility: 'public', // Forks are public by default
+            forkedFromId: originalSnippet.id,
+        },
+    });
+
+    return forkedSnippet;
 }
 
 
 export async function getSnippets({ page = 1, limit = 20, query, language, sortBy }: { page?: number; limit?: number; query?: string, language?: string, sortBy?: 'newest' | 'most-liked' | 'most-commented' }) {
-    const whereClause: any = {};
+    const session = await auth();
+    const currentUserId = session?.user?.id;
+
+    let followingIds: string[] = [];
+    if (currentUserId) {
+        const follows = await db.follows.findMany({
+            where: { followerId: currentUserId },
+            select: { followingId: true }
+        });
+        followingIds = follows.map(f => f.followingId);
+    }
+
+    const whereClause: any = {
+        OR: [
+            { visibility: 'public' },
+            ...(currentUserId ? [
+                { // User's own private snippets
+                    AND: [
+                        { authorId: currentUserId },
+                        { visibility: 'private' }
+                    ]
+                },
+                { // Private snippets of people the user follows
+                    AND: [
+                        { authorId: { in: followingIds } },
+                        { visibility: 'private' }
+                    ]
+                }
+            ] : [])
+        ]
+    };
      if (language && language !== 'All') {
         whereClause.language = language;
     }
     if (query) {
-        whereClause.OR = [
-            { title: { contains: query, mode: 'insensitive' } },
-            { description: { contains: query, mode: 'insensitive' } },
-            { tags: { has: query } },
+        whereClause.AND = [
+            ...(whereClause.AND || []),
+            {
+                 OR: [
+                    { title: { contains: query, mode: 'insensitive' } },
+                    { description: { contains: query, mode: 'insensitive' } },
+                    { tags: { has: query } },
+                ]
+            }
         ];
     }
     
@@ -133,9 +243,6 @@ export async function getSnippets({ page = 1, limit = 20, query, language, sortB
             }
         }
     });
-    
-    const session = await auth();
-    const currentUserId = session?.user?.id;
 
     return snippets.map(snippet => ({
         ...snippet,
@@ -178,12 +285,13 @@ export async function toggleSnippetLike(snippetId: string) {
                 userId: snippet.authorId,
                 type: 'LIKE',
                 message: `${session.user.name} liked your snippet: "${snippet.title}"`,
-                link: `/feed#${snippet.id}`, // Example link
+                link: `/snippets/${snippet.id}`,
             });
         }
     }
     revalidatePath('/feed');
     revalidatePath('/explore');
+    revalidatePath(`/snippets/${snippetId}`);
 }
 
 export async function toggleSnippetSave(snippetId: string) {
@@ -239,7 +347,7 @@ export async function deleteSnippet(snippetId: string) {
     
     revalidatePath('/feed');
     revalidatePath('/explore');
-    revalidatePath(`/profile/${session.user.username}`);
+    revalidatePath(`/${session.user.username}`);
 }
 
 const commentSchema = z.object({
@@ -249,7 +357,7 @@ const commentSchema = z.object({
 
 export async function addSnippetComment(values: z.infer<typeof commentSchema>) {
   const session = await auth();
-  if (!session?.user?.id || !session.user.name) {
+  if (!session?.user?.id || !session.user.name || !session.user.username) {
     throw new Error('You must be logged in to comment.');
   }
 
@@ -271,17 +379,42 @@ export async function addSnippetComment(values: z.infer<typeof commentSchema>) {
     },
   });
   
-  if (session.user.id !== snippet.authorId) {
+  // Create notifications
+  const mentionRegex = /@(\w+)/g;
+  const mentions = content.match(mentionRegex)?.map(m => m.substring(1)) || [];
+  
+  // Notify author if they weren't mentioned and didn't post the comment
+  if (session.user.id !== snippet.authorId && !mentions.includes(snippet.author.username!)) {
     await createNotification({
         userId: snippet.authorId,
         type: 'COMMENT',
         message: `${session.user.name} commented on your snippet: "${snippet.title}"`,
-        link: `/feed#${snippet.id}`,
+        link: `/snippets/${snippet.id}`,
     });
+  }
+
+  // Notify mentioned users
+  if (mentions.length > 0) {
+      const mentionedUsers = await db.user.findMany({
+          where: {
+              username: { in: mentions },
+              id: { not: session.user.id } // don't notify self
+          },
+      });
+
+      for (const mentionedUser of mentionedUsers) {
+          await createNotification({
+              userId: mentionedUser.id,
+              type: 'MENTION',
+              message: `${session.user.name} mentioned you in a comment on "${snippet.title}"`,
+              link: `/snippets/${snippet.id}`,
+          });
+      }
   }
 
   revalidatePath('/feed');
   revalidatePath('/explore');
+  revalidatePath(`/snippets/${snippetId}`);
 }
 
 export async function getSnippetComments(snippetId: string) {

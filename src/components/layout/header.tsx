@@ -11,6 +11,7 @@ import {
 import { NotificationBell } from "./notification-bell";
 import { auth } from "@/lib/auth";
 import { MobileSidebar } from "./mobile-sidebar";
+import { GlobalSearch } from "../global-search";
 
 export async function Header() {
   const session = await auth();
@@ -29,6 +30,8 @@ export async function Header() {
         </div>
         
         <div className="flex flex-1 items-center justify-end space-x-1 sm:space-x-2">
+          <div className="flex-1" />
+          <GlobalSearch />
           <nav className="flex items-center space-x-1 sm:space-x-2">
             {session?.user && (
               <>

@@ -43,56 +43,14 @@ export async function getUserProfile(username: string) {
   const user = await db.user.findUnique({
     where: { username },
     include: {
-      snippets: {
-        orderBy: { createdAt: 'desc' },
-        include: {
-          author: true,
-          likes: true,
-          comments: true,
-          _count: { select: { likes: true, comments: true } },
-        },
-      },
-      documents: {
-        orderBy: { createdAt: 'desc' },
-        include: {
-          author: true,
-          likes: true,
-          comments: true,
-           _count: { select: { likes: true, comments: true } },
-        },
-      },
       followers: true,
       following: true,
-      savedSnippets: {
-        include: {
-          snippet: {
-            include: {
-              author: true,
-              likes: true,
-              comments: true,
-              _count: { select: { likes: true, comments: true } },
-            },
-          },
-        },
-      },
-      documentSaves: {
-        include: {
-          document: {
-            include: {
-              author: true,
-              likes: true,
-              comments: true,
-              _count: { select: { likes: true, comments: true } },
-            },
-          },
-        },
-      },
       _count: {
         select: {
-          snippets: true,
-          documents: true,
           followers: true,
           following: true,
+          snippets: true,
+          documents: true,
         },
       }
     },
@@ -101,6 +59,62 @@ export async function getUserProfile(username: string) {
   if (!user) {
     return null;
   }
+
+  // Determine if the current user can see private snippets
+  const canViewPrivate = currentUserId === user.id || (currentUserId ? !!(await db.follows.findFirst({ where: { followerId: currentUserId, followingId: user.id } })) : false);
+
+  const snippets = await db.snippet.findMany({
+    where: {
+      authorId: user.id,
+      ...(canViewPrivate ? {} : { visibility: 'public' })
+    },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      author: true,
+      likes: true,
+      comments: true,
+      _count: { select: { likes: true, comments: true } },
+    },
+  });
+
+  const documents = await db.document.findMany({
+    where: { authorId: user.id },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      author: true,
+      likes: true,
+      comments: true,
+      _count: { select: { likes: true, comments: true } },
+    },
+  });
+  
+  const savedSnippetsData = await db.savedSnippet.findMany({
+    where: { userId: user.id },
+    include: {
+      snippet: {
+        include: {
+          author: true,
+          likes: true,
+          comments: true,
+          _count: { select: { likes: true, comments: true } },
+        },
+      },
+    },
+  });
+
+  const savedDocumentsData = await db.documentSave.findMany({
+    where: { userId: user.id },
+    include: {
+      document: {
+        include: {
+          author: true,
+          likes: true,
+          comments: true,
+          _count: { select: { likes: true, comments: true } },
+        },
+      },
+    },
+  });
   
   const isFollowing = currentUserId
     ? !!(await db.follows.findUnique({
@@ -148,10 +162,10 @@ export async function getUserProfile(username: string) {
 
   return {
     ...user,
-    snippets: processItems(user.snippets, currentUserId),
-    documents: processItems(user.documents, currentUserId),
-    savedSnippets: processSavedSnippets(user.savedSnippets, currentUserId),
-    savedDocuments: processSavedDocs(user.documentSaves, currentUserId),
+    snippets: processItems(snippets, currentUserId),
+    documents: processItems(documents, currentUserId),
+    savedSnippets: processSavedSnippets(savedSnippetsData, currentUserId),
+    savedDocuments: processSavedDocs(savedDocumentsData, currentUserId),
     isFollowing,
     followersCount: user._count.followers,
     followingCount: user._count.following,
@@ -205,10 +219,10 @@ export async function toggleFollow(targetUserId: string) {
         userId: targetUserId,
         type: 'FOLLOW',
         message: `${session.user.name} started following you.`,
-        link: `/profile/${session.user.username}`,
+        link: `/${session.user.username}`,
     });
   }
-  revalidatePath(`/profile/${targetUser.username}`);
+  revalidatePath(`/${targetUser.username}`);
 }
 
 export async function updateUserProfile(values: z.infer<typeof profileSchema>) {
@@ -234,7 +248,7 @@ export async function updateUserProfile(values: z.infer<typeof profileSchema>) {
     },
   });
 
-  revalidatePath(`/profile/${updatedUser.username}`);
+  revalidatePath(`/${updatedUser.username}`);
   revalidatePath('/settings');
 
   return updatedUser;
@@ -257,6 +271,7 @@ export async function getUsers({ query }: { query?: string }) {
     orderBy: {
       name: 'asc',
     },
+    take: 10,
   });
 }
 

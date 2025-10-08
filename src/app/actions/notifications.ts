@@ -6,6 +6,18 @@ import { revalidatePath } from 'next/cache';
 import type { Notification } from '@prisma/client';
 
 export async function createNotification(data: Omit<Notification, 'id' | 'read' | 'createdAt'>) {
+    // Avoid creating duplicate notifications for the same action
+    const existingNotification = await db.notification.findFirst({
+        where: {
+            userId: data.userId,
+            link: data.link,
+            type: data.type,
+            read: false,
+        }
+    });
+
+    if (existingNotification) return;
+
     await db.notification.create({
         data,
     });
