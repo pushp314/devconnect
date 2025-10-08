@@ -6,21 +6,41 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Start seeding...');
 
-  // Create or find the admin user
-  const adminUser = await prisma.user.upsert({
-    where: { email: 'pusprajsharma314@gmail.com' },
-    update: {},
-    create: {
+  // --- ADMIN USERS ---
+  const adminUsers = [
+    {
       email: 'pusprajsharma314@gmail.com',
       name: 'Pushp Raj Sharma',
       username: 'pushprajsharma',
       image: 'https://lh3.googleusercontent.com/a/ACg8ocKAaiDrkrfvu3C6GFOJ_36ICnQRa8xaU9PeyNs_B5MWDL0aKNq1=s96-c',
       bio: 'Administrator and lead developer of CodeStudio.',
-      role: Role.ADMIN,
     },
-  });
+    {
+      email: 'newadmin@example.com',
+      name: 'Jane Doe',
+      username: 'janedoe',
+      image: 'https://i.pravatar.cc/150?u=janedoe',
+      bio: 'Community Manager and Administrator.',
+    }
+  ];
 
-  console.log('Found/Created admin user:', { adminUser });
+  let createdAdminUsers = [];
+
+  for (const admin of adminUsers) {
+      const adminUser = await prisma.user.upsert({
+        where: { email: admin.email },
+        update: { role: Role.ADMIN },
+        create: {
+          ...admin,
+          role: Role.ADMIN,
+        },
+      });
+      createdAdminUsers.push(adminUser);
+      console.log('Found/Created admin user:', { adminUser });
+  }
+
+  const primaryAdmin = createdAdminUsers[0];
+
 
   // --- SNIPPETS ---
   const snippets = [
@@ -32,8 +52,8 @@ async function main() {
       code: `() => {
     const [count, setCount] = React.useState(0);
     return (
-        <div className="flex flex-col items-center gap-4 text-center p-4">
-            <h3 className="font-headline text-xl">React Counter</h3>
+        <div class="flex flex-col items-center gap-4 text-center p-4">
+            <h3 class="font-headline text-xl">React Counter</h3>
             <p className="text-muted-foreground text-sm">Click the button below to see the count increase.</p>
             <Button onClick={() => setCount(count + 1)} className="w-48">
                 <MousePointerClick className="mr-2" />
@@ -232,7 +252,7 @@ func main() {
       update: {},
       create: {
         ...snippet,
-        authorId: adminUser.id,
+        authorId: primaryAdmin.id,
       },
     });
   }
@@ -336,7 +356,7 @@ Tailwind CSS is a utility-first CSS framework for rapidly building custom user i
       update: {},
       create: {
         ...doc,
-        authorId: adminUser.id,
+        authorId: primaryAdmin.id,
       },
     });
   }
@@ -353,7 +373,7 @@ Tailwind CSS is a utility-first CSS framework for rapidly building custom user i
       previewUrls: ["https://picsum.photos/seed/loginform/600/400"],
       zipFileUrl: "/placeholder.zip",
       status: "approved",
-      creatorId: adminUser.id,
+      creatorId: primaryAdmin.id,
     },
     {
       title: "Interactive Data Dashboard",
@@ -363,7 +383,7 @@ Tailwind CSS is a utility-first CSS framework for rapidly building custom user i
       previewUrls: ["https://picsum.photos/seed/dashboard/600/400"],
       zipFileUrl: "/placeholder.zip",
       status: "approved",
-      creatorId: adminUser.id,
+      creatorId: primaryAdmin.id,
     }
   ];
 
@@ -388,3 +408,5 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
+    
