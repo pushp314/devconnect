@@ -11,7 +11,7 @@ import { Button } from "./ui/button";
 import { MoreHorizontal, ShieldAlert, UserX, Loader2 } from 'lucide-react';
 import { ReportUserDialog } from './report-user-dialog';
 import { blockUser } from '@/app/actions/users';
-import { useToast } from './hooks/use-toast';
+import { useToast } from '../hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
 interface UserActionsProps {
