@@ -177,13 +177,13 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
                       </FormControl>
                       <SelectContent>
                         <SelectGroup>
-                            <SelectLabel>Live Preview Available</SelectLabel>
+                            <SelectLabel>Live Preview</SelectLabel>
                             {previewLanguages.map(lang => (
                                 <SelectItem key={lang} value={lang}>{lang}</SelectItem>
                             ))}
                         </SelectGroup>
                         <SelectGroup>
-                             <SelectLabel>Code Only</SelectLabel>
+                             <SelectLabel>Code-Only Display</SelectLabel>
                             {codeOnlyLanguages.map(lang => (
                                 <SelectItem key={lang} value={lang}>{lang}</SelectItem>
                             ))}
@@ -321,3 +321,5 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
       </Card>
   );
 }
+
+    
