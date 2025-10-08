@@ -6,8 +6,13 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 model User {
@@ -17,34 +22,39 @@ model User {
   email                   String?   @unique
   emailVerified           DateTime?
   image                   String?
-  bio                     String?
+  bio                     String?   @db.Text
   githubUrl               String?
   twitterUrl              String?
-  purchasedComponentIds   String[]
+  purchasedComponentIds   String[]  @default([])
+  role                    Role      @default(USER)
 
-  accounts                Account[]
-  sessions                Session[]
-  snippets                Snippet[]
-  documents               Document[]
-  likes                   Like[]
-  comments                Comment[]
-  savedSnippets           SavedSnippet[]
-  documentSaves           DocumentSave[]
-  documentLikes           DocumentLike[]
-  documentComments        DocumentComment[]
+  accounts       Account[]
+  sessions       Session[]
+  snippets       Snippet[]       @relation("UserSnippets")
+  likes          Like[]          @relation("UserLikes")
+  comments       Comment[]       @relation("UserComments")
+  savedSnippets  SavedSnippet[]  @relation("UserSavedSnippets")
+  followers      Follows[]       @relation("Following")
+  following      Follows[]       @relation("Followers")
   
-  followers               Follows[] @relation("Follows")
-  following               Follows[] @relation("Following")
+  documents      Document[]      @relation("UserDocuments")
+  documentLikes  DocumentLike[]  @relation("UserDocumentLikes")
+  documentComments DocumentComment[] @relation("UserDocumentComments")
+  documentSaves  DocumentSave[]  @relation("UserDocumentSaves")
+  
+  createdComponents Component[] @relation("ComponentCreator")
+  orders            Order[]     @relation("UserOrders")
+  reviews           Review[]    @relation("UserReviews")
 
-  notifications           Notification[]
+  bugReports    Bug[]         @relation("BugReporter")
+  bugUpvotes    BugUpvote[]   @relation("BugUpvoter")
+  bugComments   BugComment[]  @relation("BugCommenter")
 
-  components              Component[]
-  orders                  Order[]
-  reviews                 Review[]
+  notifications Notification[]
 
-  bugReports              Bug[]
-  bugUpvotes              BugUpvote[]
-  bugComments             BugComment[]
+  // Optional for Session schema
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Account {
@@ -83,228 +93,117 @@ model VerificationToken {
 }
 
 model Snippet {
-  id              String @id @default(cuid())
-  title           String @unique
-  description     String
-  language        String
-  code            String
-  tags            String[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  authorId        String
-  author          User @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  visibility      String @default("public") // "public" or "private"
-  
-  forkedFromId    String?
-  forkedFrom      Snippet? @relation("Fork", fields: [forkedFromId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  forks           Snippet[] @relation("Fork")
-  allowForks      Boolean @default(true)
-
-  likes           Like[]
-  comments        Comment[]
-  savedBy         SavedSnippet[]
-}
-
-model Like {
-  id          String @id @default(cuid())
-  createdAt   DateTime @default(now())
-  userId      String
-  snippetId   String
-  
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  snippet     Snippet  @relation(fields: [snippetId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, snippetId])
-}
-
-model Comment {
-  id          String @id @default(cuid())
-  content     String
-  createdAt   DateTime @default(now())
-  
-  authorId    String
-  author      User @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  
-  snippetId   String
-  snippet     Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
-}
-
-model SavedSnippet {
-  id          String @id @default(cuid())
-  createdAt   DateTime @default(now())
-  
-  userId      String
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  snippetId   String
-  snippet     Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, snippetId])
-}
-
-model Document {
-  id          String @id @default(cuid())
-  title       String
-  slug        String @unique
-  content     String
+  id          String   @id @default(cuid())
+  title       String   @unique
+  description String   @db.Text
+  language    String
+  code        String   @db.Text
   tags        String[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
   authorId    String
-  author      User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author      User     @relation("UserSnippets", fields: [authorId], references: [id], onDelete: Cascade)
+  
+  visibility  String   @default("public") // "public" or "private"
+  
+  forkedFromId String?
+  forkedFrom   Snippet?  @relation("SnippetForks", fields: [forkedFromId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  forks        Snippet[] @relation("SnippetForks")
+  
+  allowForks   Boolean   @default(true)
 
-  likes       DocumentLike[]
-  comments    DocumentComment[]
-  savedBy     DocumentSave[]
+  likes       Like[]
+  comments    Comment[]
+  savedBy     SavedSnippet[]
 }
 
-model DocumentLike {
-  id          String @id @default(cuid())
-  createdAt   DateTime @default(now())
-  
-  userId      String
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  documentId  String
-  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+model Like {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  userId     String
+  user       User     @relation("UserLikes", fields: [userId], references: [id], onDelete: Cascade)
+  snippetId  String
+  snippet    Snippet  @relation(fields: [snippetId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, documentId])
+  @@unique([userId, snippetId])
 }
 
-model DocumentComment {
-  id          String @id @default(cuid())
-  content     String
-  createdAt   DateTime @default(now())
+model Comment {
+  id         String   @id @default(cuid())
+  content    String
+  createdAt  DateTime @default(now())
   
-  authorId    String
-  author      User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId   String
+  author     User     @relation("UserComments", fields: [authorId], references: [id], onDelete: Cascade)
   
-  documentId  String
-  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  snippetId  String
+  snippet    Snippet  @relation(fields: [snippetId], references: [id], onDelete: Cascade)
 }
 
-model DocumentSave {
-  id          String @id @default(cuid())
-  createdAt   DateTime @default(now())
+model SavedSnippet {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  userId     String
+  user       User     @relation("UserSavedSnippets", fields: [userId], references: [id], onDelete: Cascade)
+  snippetId  String
+  snippet    Snippet  @relation(fields: [snippetId], references: [id], onDelete: Cascade)
   
-  userId      String
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  documentId  String
-  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, documentId])
+  @@unique([userId, snippetId])
 }
 
 model Follows {
   followerId  String
   followingId String
   
-  follower    User @relation("Following", fields: [followerId], references: [id])
-  following   User @relation("Follows", fields: [followingId], references: [id])
-
+  follower    User @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  
   @@id([followerId, followingId])
 }
 
-model Notification {
-  id          String @id @default(cuid())
-  userId      String
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type        String // e.g., 'LIKE', 'COMMENT', 'FOLLOW', 'MENTION'
-  message     String
-  link        String
-  read        Boolean @default(false)
-  createdAt   DateTime @default(now())
+model Document {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  content   String   @db.Text
+  tags      String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  authorId  String
+  author    User     @relation("UserDocuments", fields: [authorId], references: [id], onDelete: Cascade)
+
+  likes    DocumentLike[]
+  comments DocumentComment[]
+  savedBy  DocumentSave[]
 }
 
-model Component {
-  id              String   @id @default(cuid())
-  title           String   @unique
-  description     String
-  price           Int
-  tags            String[]
-  previewUrls     String[]
-  zipFileUrl      String
-  livePreviewUrl  String?
-  status          String   @default("pending") // pending, approved, rejected
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  creatorId       String
-  creator         User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+model DocumentLike {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  userId     String
+  user       User     @relation("UserDocumentLikes", fields: [userId], references: [id], onDelete: Cascade)
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
-  orders          Order[]
-  reviews         Review[]
+  @@unique([userId, documentId])
 }
 
-model Order {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  componentId String
-  component   Component @relation(fields: [componentId], references: [id])
-  amount      Int
-  status      String   // e.g., 'pending', 'completed', 'failed'
-  createdAt   DateTime @default(now())
+model DocumentComment {
+  id         String   @id @default(cuid())
+  content    String
+  createdAt  DateTime @default(now())
+  
+  authorId   String
+  author     User     @relation("UserDocumentComments", fields: [authorId], references: [id], onDelete: Cascade)
+  
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
 }
 
-model Review {
-  id          String   @id @default(cuid())
-  rating      Int
-  text        String?
-  
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  
-  componentId String
-  component   Component @relation(fields: [componentId], references: [id])
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@unique([userId, componentId])
-}
-
-
-model Bug {
-  id          String @id @default(cuid())
-  title       String
-  description String
-  status      String // OPEN, IN_PROGRESS, CLOSED
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  reporterId  String
-  reporter    User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
-
-  upvotes     BugUpvote[]
-  comments    BugComment[]
-}
-
-model BugUpvote {
-  id          String @id @default(cuid())
-  createdAt   DateTime @default(now())
-  
-  userId      String
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  bugId       String
-  bug         Bug @relation(fields: [bugId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, bugId])
-}
-
-model BugComment {
-  id          String @id @default(cuid())
-  content     String
-  createdAt   DateTime @default(now())
-  
-  authorId    String
-  author      User @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  
-  bugId       String
-  bug         Bug @relation(fields: [bugId], references: [id], onDelete: Cascade)
-}
+model DocumentSave {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  userId     String
+  user       User     @relation("UserDocumentSaves", fields
