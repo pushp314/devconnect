@@ -28,13 +28,13 @@ export async function Header() {
           </Link>
         </div>
         
-        <div className="flex flex-1 items-center justify-end space-x-2 sm:space-x-4">
+        <div className="flex flex-1 items-center justify-end space-x-1 sm:space-x-2">
           <nav className="flex items-center space-x-1 sm:space-x-2">
             {session?.user && (
               <>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="default" size="sm">
+                    <Button variant="default" size="sm" className="h-9">
                       <PlusCircle className="h-4 w-4 mr-0 sm:mr-2" />
                       <span className="hidden sm:inline">Create</span>
                     </Button>

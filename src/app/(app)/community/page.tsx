@@ -14,12 +14,12 @@ export default async function CommunityPage({
 
   return (
     <div className="container py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold font-headline mb-4">Community</h1>
+      <div className="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <h1 className="text-3xl font-bold font-headline">Community</h1>
         <CommunitySearch />
       </div>
       {users.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {users.map((user) => (
             <UserCard key={user.id} user={user} />
           ))}

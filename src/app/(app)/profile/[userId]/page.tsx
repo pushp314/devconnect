@@ -8,6 +8,7 @@ import { getUserProfile } from "@/app/actions/users";
 import type { User, Snippet, Document as DocType, Like, Comment, SavedSnippet, DocumentSave } from "@prisma/client";
 import { FollowButton } from "@/components/follow-button";
 import Link from 'next/link';
+import { Button } from "@/components/ui/button";
 
 type PopulatedSnippet = Snippet & {
   author: User;
@@ -42,52 +43,58 @@ export default async function ProfilePage({ params }: { params: { userId: string
 
   return (
     <div className="container py-8">
-      <header className="flex flex-col md:flex-row items-center gap-8 mb-10">
-        <Avatar className="h-32 w-32 border-4 border-primary">
+      <header className="flex flex-col items-center gap-8 mb-10">
+        <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-primary">
           <AvatarImage src={user.image ?? undefined} alt={user.name ?? ''} data-ai-hint="person face"/>
-          <AvatarFallback className="text-4xl">{userInitials}</AvatarFallback>
+          <AvatarFallback className="text-3xl md:text-4xl">{userInitials}</AvatarFallback>
         </Avatar>
-        <div className="flex-1 text-center md:text-left">
-          <h1 className="text-4xl font-bold font-headline">{user.name}</h1>
-          <div className="flex items-center justify-center md:justify-start gap-2 text-muted-foreground mt-1">
+        <div className="flex-1 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold font-headline">{user.name}</h1>
+          <div className="flex items-center justify-center gap-2 text-muted-foreground mt-1">
              <AtSign className="h-4 w-4" />
             <span>{user.username}</span>
           </div>
-          <p className="mt-3 max-w-xl mx-auto md:mx-0">{user.bio}</p>
-          <div className="mt-4 flex items-center justify-center md:justify-start gap-4">
+          <p className="mt-3 max-w-xl mx-auto">{user.bio}</p>
+          <div className="mt-4 flex items-center justify-center gap-4">
             {user.githubUrl && (
-              <Link href={user.githubUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
-                <Github className="h-5 w-5" />
-              </Link>
+              <Button variant="ghost" size="icon" asChild>
+                <Link href={user.githubUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+                    <Github className="h-5 w-5" />
+                </Link>
+              </Button>
             )}
             {user.twitterUrl && (
-              <Link href={user.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
-                <Twitter className="h-5 w-5" />
-              </Link>
+              <Button variant="ghost" size="icon" asChild>
+                <Link href={user.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+                    <Twitter className="h-5 w-5" />
+                </Link>
+              </Button>
             )}
           </div>
-          <div className="mt-4 flex items-center justify-center md:justify-start gap-6">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 sm:gap-6">
             <div className="text-center">
-              <p className="text-2xl font-bold">{profile.snippetsCount}</p>
-              <p className="text-sm text-muted-foreground">Snippets</p>
+              <p className="text-xl md:text-2xl font-bold">{profile.snippetsCount}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Snippets</p>
             </div>
              <div className="text-center">
-              <p className="text-2xl font-bold">{profile.documentsCount}</p>
-              <p className="text-sm text-muted-foreground">Documents</p>
+              <p className="text-xl md:text-2xl font-bold">{profile.documentsCount}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Documents</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold">{profile.followersCount}</p>
-              <p className="text-sm text-muted-foreground">Followers</p>
+              <p className="text-xl md:text-2xl font-bold">{profile.followersCount}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Followers</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold">{profile.followingCount}</p>
-              <p className="text-sm text-muted-foreground">Following</p>
+              <p className="text-xl md:text-2xl font-bold">{profile.followingCount}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Following</p>
             </div>
+          </div>
+           <div className="mt-6">
              <FollowButton
                 targetUserId={user.id}
                 isFollowing={profile.isFollowing}
              />
-          </div>
+           </div>
         </div>
       </header>
 
@@ -99,7 +106,7 @@ export default async function ProfilePage({ params }: { params: { userId: string
         </TabsList>
         <TabsContent value="snippets">
           {snippets.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {snippets.map(snippet => (
                 <SnippetCard key={snippet.id} snippet={snippet} />
               ))}
@@ -112,7 +119,7 @@ export default async function ProfilePage({ params }: { params: { userId: string
         </TabsContent>
         <TabsContent value="documents">
            {documents.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {documents.map(doc => (
                     <DocCard key={doc.id} doc={doc as any} />
                 ))}
@@ -131,7 +138,7 @@ export default async function ProfilePage({ params }: { params: { userId: string
             </TabsList>
             <TabsContent value="saved-snippets">
                 {savedSnippets.length > 0 ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                         {savedSnippets.map(snippet => (
                             <SnippetCard key={snippet.id} snippet={snippet} />
                         ))}
@@ -144,7 +151,7 @@ export default async function ProfilePage({ params }: { params: { userId: string
             </TabsContent>
             <TabsContent value="saved-documents">
                  {savedDocuments.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                         {savedDocuments.map(doc => (
                             <DocCard key={doc.id} doc={doc as any} />
                         ))}

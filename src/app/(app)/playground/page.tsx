@@ -8,11 +8,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import * as LucideReact from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const initialCode = `() => {
     const [count, setCount] = React.useState(0);
     return (
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-4 text-center">
             <h3 className="font-headline text-2xl">Hello From the Playground!</h3>
             <p className="text-muted-foreground">This is a live React preview.</p>
             <Button onClick={() => setCount(count + 1)}>
@@ -45,21 +46,22 @@ export default function PlaygroundPage() {
         React,
         useState,
         Button,
-        LucideReact
+        LucideReact,
+        cn,
     };
 
     return (
         <LiveProvider code={code} scope={scope} noInline={false}>
             <div className="h-full grid grid-cols-1 lg:grid-cols-2">
-                <div className="h-full flex flex-col">
+                <div className="h-full flex flex-col lg:h-auto lg:min-h-[calc(100vh-8rem)]">
                     <Tabs defaultValue="tsx" className="flex-grow flex flex-col">
-                        <TabsList className="m-2">
+                        <TabsList className="m-2 shrink-0">
                             <TabsTrigger value="tsx">React (TSX)</TabsTrigger>
                             <TabsTrigger value="html" disabled>HTML</TabsTrigger>
                             <TabsTrigger value="css" disabled>CSS</TabsTrigger>
                             <TabsTrigger value="js" disabled>JavaScript</TabsTrigger>
                         </TabsList>
-                        <TabsContent value="tsx" className="flex-grow relative">
+                        <TabsContent value="tsx" className="flex-grow relative h-full min-h-[300px] lg:min-h-0">
                              <LiveEditor
                                 onChange={setCode}
                                 theme={theme === 'dark' ? reactLiveTheme.dark : reactLiveTheme.light}
@@ -69,7 +71,7 @@ export default function PlaygroundPage() {
                         </TabsContent>
                     </Tabs>
                 </div>
-                <div className="relative h-full border-l bg-muted/20">
+                <div className="relative h-full border-t lg:border-t-0 lg:border-l bg-muted/20 min-h-[300px] lg:min-h-0">
                      <Card className="h-full w-full rounded-none border-0">
                         <CardContent className="p-0 h-full">
                             <LivePreview className="p-8 h-full w-full flex items-center justify-center" />
