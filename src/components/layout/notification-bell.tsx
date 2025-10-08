@@ -25,30 +25,38 @@ export function NotificationBell() {
 
     const fetchNotifications = React.useCallback(async () => {
         try {
-            setIsLoading(true);
+            // Don't set loading to true for background refetches
             const fetchedNotifications = await getNotifications();
             setNotifications(fetchedNotifications);
         } catch (error) {
             console.error("Failed to fetch notifications:", error);
-            toast({ variant: 'destructive', title: "Failed to load notifications." });
+            // Don't toast on silent background fetch errors
         } finally {
             setIsLoading(false);
         }
-    }, [toast]);
+    }, []);
     
     React.useEffect(() => {
+        // Fetch immediately on mount
         fetchNotifications();
+        // Then fetch every 30 seconds
+        const interval = setInterval(fetchNotifications, 30000);
+        return () => clearInterval(interval);
     }, [fetchNotifications]);
     
     const handleMarkAsRead = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
         
+        // Optimistic update
+        const originalNotifications = notifications;
+        setNotifications(notifications.map(n => n.id === id ? { ...n, read: true } : n));
+
         try {
             await markAsRead(id);
-            setNotifications(notifications.map(n => n.id === id ? { ...n, read: true } : n));
-            toast({ title: "Notification marked as read." });
         } catch (error) {
+            // Revert on error
+            setNotifications(originalNotifications);
             toast({ variant: 'destructive', title: "Failed to mark as read." });
         }
     };
@@ -56,7 +64,7 @@ export function NotificationBell() {
     const unreadCount = notifications.filter(n => !n.read).length;
 
     return (
-        <DropdownMenu onOpenChange={(open) => open && fetchNotifications()}>
+        <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
                     <Bell className="h-5 w-5" />
