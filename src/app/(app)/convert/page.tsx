@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useTheme } from 'next-themes';
-import { LiveEditor } from 'react-live';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
@@ -94,13 +94,29 @@ export default function ConvertPage() {
                             language={sourceLang.toLowerCase() || "plaintext"}
                             >
                             {({ className, style, tokens, getLineProps, getTokenProps }) => (
-                                <LiveEditor
-                                    value={sourceCode}
-                                    onValueChange={setSourceCode}
-                                    className="absolute inset-0 font-code text-sm !bg-transparent p-4 rounded-md border"
-                                    style={{...style, fontFamily: '"Source Code Pro", monospace'}}
-                                    padding={16}
-                                />
+                                <div className="relative h-full">
+                                    <Textarea
+                                        value={sourceCode}
+                                        onChange={(e) => setSourceCode(e.target.value)}
+                                        className="absolute inset-0 z-10 font-code text-sm !bg-transparent p-4 rounded-md border resize-none"
+                                        style={{...style, fontFamily: '"Source Code Pro", monospace'}}
+                                        padding-top={16}
+                                        padding-left={16}
+                                    />
+                                    <pre
+                                        className={`${className} absolute inset-0 p-4 rounded-md pointer-events-none`}
+                                        style={{ ...style, fontFamily: '"Source Code Pro", monospace', margin: 0 }}
+                                        aria-hidden="true"
+                                    >
+                                        {tokens.map((line, i) => (
+                                            <div key={i} {...getLineProps({ line, key: i })}>
+                                                {line.map((token, key) => (
+                                                    <span key={key} {...getTokenProps({ token, key })} />
+                                                ))}
+                                            </div>
+                                        ))}
+                                    </pre>
+                                </div>
                             )}
                         </Highlight>
                     </CardContent>
@@ -166,5 +182,6 @@ export default function ConvertPage() {
                 </Card>
             </div>
         </div>
-    ];
+    );
 }
+
