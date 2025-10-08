@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowRight, Loader2 } from 'lucide-react';
@@ -48,59 +48,65 @@ export default function ConvertPage() {
 
     return (
         <div className="container py-8">
-            <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold font-headline">AI Code Converter</h1>
-                <p className="text-muted-foreground mt-2">Translate code from one language to another using AI.</p>
+            <div className="text-center mb-12">
+                <h1 className="text-4xl font-extrabold font-headline tracking-tight">AI Code Converter</h1>
+                <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">Translate code snippets from one programming language to another using the power of generative AI.</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                <Card>
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-8 items-center">
+                {/* Source Column */}
+                <Card className="h-full">
                     <CardHeader>
-                        <CardTitle className="font-headline">Source Code</CardTitle>
-                        <CardDescription>Enter the code you want to convert.</CardDescription>
+                        <CardTitle className="font-headline flex items-center justify-between">
+                            <span>Source Code</span>
+                             <Select onValueChange={setSourceLang} value={sourceLang}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Source Language" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {languages.map(lang => (
+                                        <SelectItem key={`source-${lang}`} value={lang}>{lang}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <Select onValueChange={setSourceLang} value={sourceLang}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select Source Language" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {languages.map(lang => (
-                                    <SelectItem key={`source-${lang}`} value={lang}>{lang}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                    <CardContent>
                         <Textarea
                             placeholder="Paste your source code here..."
                             value={sourceCode}
                             onChange={(e) => setSourceCode(e.target.value)}
-                            rows={15}
-                            className="font-code"
+                            rows={18}
+                            className="font-code text-sm"
                         />
                     </CardContent>
                 </Card>
 
-                <div className="flex flex-col items-center gap-8">
-                    <Button onClick={handleConvert} disabled={isConverting || !sourceCode || !sourceLang || !targetLang} className="lg:mt-48 w-full max-w-xs">
+                {/* Action Column */}
+                <div className="flex justify-center">
+                    <Button 
+                        size="lg"
+                        onClick={handleConvert} 
+                        disabled={isConverting || !sourceCode || !sourceLang || !targetLang} 
+                        className="rounded-full w-24 h-24 text-lg"
+                    >
                         {isConverting ? (
-                            <Loader2 className="animate-spin" />
+                            <Loader2 className="h-8 w-8 animate-spin" />
                         ) : (
-                            <>
-                                Convert Code
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                            </>
+                            <ArrowRight className="h-8 w-8" />
                         )}
+                         <span className="sr-only">Convert Code</span>
                     </Button>
+                </div>
 
-                    <Card className="w-full">
-                        <CardHeader>
-                            <CardTitle className="font-headline">Converted Code</CardTitle>
-                            <CardDescription>The AI-generated code will appear here.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                             <Select onValueChange={setTargetLang} value={targetLang}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select Target Language" />
+                {/* Target Column */}
+                <Card className="h-full">
+                    <CardHeader>
+                       <CardTitle className="font-headline flex items-center justify-between">
+                            <span>Converted Code</span>
+                            <Select onValueChange={setTargetLang} value={targetLang}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Target Language" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {languages.map(lang => (
@@ -108,20 +114,25 @@ export default function ConvertPage() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <div className="mt-4 rounded-lg border bg-muted/50 p-4 min-h-[358px]">
-                                {isConverting ? (
-                                    <div className="flex items-center justify-center h-full">
-                                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                    </div>
-                                ) : convertedCode ? (
-                                    <CodeBlock code={convertedCode} language={targetLang.toLowerCase()} />
-                                ) : (
-                                    <p className="text-sm text-muted-foreground text-center pt-16">Output will be displayed here.</p>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="rounded-lg border bg-muted/50 p-2 min-h-[420px]">
+                            {isConverting ? (
+                                <div className="flex items-center justify-center h-full flex-col gap-4">
+                                    <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                                    <p className="text-sm text-muted-foreground">Converting code...</p>
+                                </div>
+                            ) : convertedCode ? (
+                                <CodeBlock code={convertedCode} language={targetLang.toLowerCase()} />
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-center p-8">
+                                    <p className="text-sm text-muted-foreground">The AI-generated code will appear here.</p>
+                                </div>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );
