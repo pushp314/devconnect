@@ -101,7 +101,7 @@ export async function uploadComponent(values: z.infer<typeof uploadComponentSche
     }
 
     const validatedFields = uploadComponentSchema.safeParse(values);
-    if (!validatedFields.success) {
+    if (!validatedFields.error) {
         console.error(validatedFields.error);
         throw new Error('Invalid component data.');
     }
