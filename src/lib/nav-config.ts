@@ -13,6 +13,7 @@ import {
   ShoppingBag,
   ShieldCheck,
   LayoutDashboard,
+  Share,
 } from 'lucide-react';
 
 export const navSections = [
@@ -28,7 +29,7 @@ export const navSections = [
    {
     title: 'Shop',
     items: [
-      { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag },
+      { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag, secondaryIcon: Share },
     ],
   },
   {

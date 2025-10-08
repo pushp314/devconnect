@@ -49,6 +49,7 @@ export function DesktopSidebar() {
 
                               const isActive = pathname.startsWith(link.href);
                               const isMarketplace = link.label === 'Marketplace';
+                              const SecondaryIcon = link.secondaryIcon;
 
                               return (
                                 <Link
@@ -61,7 +62,8 @@ export function DesktopSidebar() {
                                   )}
                                 >
                                   <link.icon className="h-4 w-4" />
-                                  {link.label}
+                                  <span className="flex-1">{link.label}</span>
+                                  {SecondaryIcon && <SecondaryIcon className="h-4 w-4" />}
                                 </Link>
                               );
                             })}
