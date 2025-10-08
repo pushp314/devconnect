@@ -3,12 +3,18 @@
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
-import type { Component, User, Order } from '@prisma/client';
+import type { Component, User, Order, Review } from '@prisma/client';
 import { z } from 'zod';
 import { notFound, redirect } from 'next/navigation';
 
 export type PopulatedMarketplaceComponent = Component & {
-    creator: User
+    creator: User;
+    reviews: (Review & { user: User })[];
+}
+
+export type ReviewStats = {
+    averageRating: number;
+    totalReviews: number;
 }
 
 export async function getMarketplaceComponents({ query, sortBy = 'newest' }: { query?: string, sortBy?: string }) {
@@ -42,6 +48,11 @@ export async function getMarketplaceComponents({ query, sortBy = 'newest' }: { q
     orderBy: orderBy,
     include: {
       creator: true,
+      reviews: {
+        include: {
+          user: true
+        }
+      }
     },
   });
   return components as PopulatedMarketplaceComponent[];
@@ -54,6 +65,14 @@ export async function getMarketplaceComponentById(id: string) {
         where: { id },
         include: {
             creator: true,
+            reviews: {
+              include: {
+                user: true
+              },
+              orderBy: {
+                createdAt: 'desc'
+              }
+            }
         },
     });
 
@@ -256,4 +275,61 @@ export async function approveComponent(componentId: string) {
 
 export async function rejectComponent(componentId: string) {
     await updateComponentStatus(componentId, 'rejected');
+}
+
+// --- Review Actions ---
+
+const reviewSchema = z.object({
+    componentId: z.string(),
+    rating: z.number().min(1).max(5),
+    text: z.string().min(10, 'Review must be at least 10 characters.').max(1000).optional(),
+});
+
+export async function submitReview(values: z.infer<typeof reviewSchema>) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        throw new Error('You must be logged in to leave a review.');
+    }
+    const userId = session.user.id;
+
+    // 1. Validate input
+    const validatedFields = reviewSchema.safeParse(values);
+    if (!validatedFields.success) {
+        throw new Error('Invalid review data.');
+    }
+
+    const { componentId, rating, text } = validatedFields.data;
+    
+    // 2. Verify user has purchased the component
+    const user = await db.user.findUnique({
+        where: { id: userId },
+        select: { purchasedComponentIds: true }
+    });
+
+    if (!user?.purchasedComponentIds.includes(componentId)) {
+        throw new Error("You must purchase a component to review it.");
+    }
+
+    // 3. Create or update the review (upsert)
+    await db.review.upsert({
+        where: {
+            userId_componentId: {
+                userId,
+                componentId,
+            }
+        },
+        update: {
+            rating,
+            text,
+        },
+        create: {
+            userId,
+            componentId,
+            rating,
+            text,
+        }
+    });
+
+    // 4. Revalidate the component page
+    revalidatePath(`/components-marketplace/${componentId}`);
 }
