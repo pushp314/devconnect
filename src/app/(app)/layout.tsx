@@ -16,7 +16,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           {children}
         </main>
       </div>
-      <MobileBottomNav />
+       <MobileBottomNav />
     </div>
   );
 }
