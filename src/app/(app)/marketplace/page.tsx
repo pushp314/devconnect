@@ -29,7 +29,7 @@ export default async function ComponentsMarketplacePage({
           <MarketplaceSearch />
           {session?.user && (
               <Button asChild>
-                  <Link href="/marketplace/upload">
+                  <Link href="/components-marketplace/upload">
                       <PlusCircle className="mr-2" />
                       <span className="hidden sm:inline">Upload</span>
                   </Link>
