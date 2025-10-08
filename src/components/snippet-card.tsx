@@ -27,8 +27,8 @@ export async function SnippetCard({ snippet }: SnippetCardProps) {
   const isAuthor = session?.user?.id === snippet.authorId;
 
   return (
-    <Card id={snippet.id} className="overflow-hidden transition-all hover:shadow-lg hover:border-primary/50 flex flex-col">
-      <CardHeader className="flex flex-row items-start gap-4 space-y-0">
+    <Card id={snippet.id} className="h-[550px] flex flex-col transition-all hover:shadow-lg hover:border-primary/50">
+      <CardHeader className="flex-shrink-0 flex flex-row items-start gap-4 space-y-0">
         <Avatar>
           <AvatarImage src={snippet.author.image ?? undefined} alt={snippet.author.name ?? ''} data-ai-hint="person face" />
           <AvatarFallback>{snippet.author.name?.charAt(0)}</AvatarFallback>
@@ -45,16 +45,18 @@ export async function SnippetCard({ snippet }: SnippetCardProps) {
         </div>
          {isAuthor && <SnippetActionsMenu snippetId={snippet.id} />}
       </CardHeader>
-      <CardContent className="space-y-4 flex-grow">
-        <p className="text-sm">{snippet.description}</p>
-        <CodeBlock code={snippet.code} language={snippet.language.toLowerCase()} />
-        <div className="mt-4 flex flex-wrap gap-2">
-          {snippet.tags.map((tag) => (
-            <Badge key={tag} variant="secondary">{tag}</Badge>
-          ))}
-        </div>
-      </CardContent>
-      <CardFooter>
+      <div className="flex-grow overflow-y-auto">
+        <CardContent className="space-y-4">
+            <p className="text-sm">{snippet.description}</p>
+            <CodeBlock code={snippet.code} language={snippet.language.toLowerCase()} />
+            <div className="mt-4 flex flex-wrap gap-2">
+            {snippet.tags.map((tag) => (
+                <Badge key={tag} variant="secondary">{tag}</Badge>
+            ))}
+            </div>
+        </CardContent>
+      </div>
+      <CardFooter className="flex-shrink-0">
         <SnippetInteraction snippet={snippet} />
       </CardFooter>
     </Card>
