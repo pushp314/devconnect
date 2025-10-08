@@ -38,41 +38,59 @@ export function MobileSidebar() {
             <h1 className="font-headline">CodeStudio</h1>
         </Link>
         <div className="flex flex-col gap-4">
-            {navSections.map((section) => (
-                <div key={section.title} className="flex flex-col gap-1">
-                    <h2 className="text-sm font-semibold tracking-tight text-muted-foreground px-3">
-                        {section.title}
-                    </h2>
-                     {section.items.map((link) => {
-                       const href = link.href.includes('[[username]]') 
-                        ? user?.username ? link.href.replace('[[username]]', user.username) : '/auth/signin'
-                        : link.href;
-                      
-                       if (link.label === 'Admin' && user?.role !== Role.ADMIN) {
-                        return null;
-                       }
+            {navSections.map((section) => {
+                 const sectionHasVisibleItems = section.items.some(link => {
+                    if (link.href.includes('[[username]]') && !user) return false;
+                    if ((link.label === 'Admin' || link.href === '/admin') && user?.role !== Role.ADMIN) return false;
+                    if ((link.label === 'Saved' || link.href === '/saved') && !user) return false;
+                    if ((link.label === 'Dashboard' || link.href === '/dashboard/components') && !user) return false;
+                    if ((link.label === 'Settings' || link.href === '/settings') && !user) return false;
+                    if ((link.label === 'Profile') && !user) return false;
+                    return true;
+                });
 
-                       const isActive = link.label === 'Marketplace'
-                        ? pathname.startsWith(href)
-                        : pathname === href;
+                if (!sectionHasVisibleItems) {
+                    return null;
+                }
 
-                       return (
-                        <Link
-                            key={link.href}
-                            href={href}
-                            onClick={() => setOpen(false)}
-                            className={cn(
-                            'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
-                            isActive && 'text-primary bg-muted'
-                            )}
-                        >
-                            <link.icon className="h-4 w-4" />
-                            {link.label}
-                        </Link>
-                       );
-                    })}
-                </div>
-            ))}
+                return (
+                    <div key={section.title} className="flex flex-col gap-1">
+                        <h2 className="text-sm font-semibold tracking-tight text-muted-foreground px-3">
+                            {section.title}
+                        </h2>
+                         {section.items.map((link) => {
+                           const href = link.href.includes('[[username]]') 
+                            ? user?.username ? link.href.replace('[[username]]', user.username) : null
+                            : link.href;
+                          
+                           if (!href) return null;
+                           if ((link.label === 'Admin' || link.href === '/admin') && user?.role !== Role.ADMIN) return null;
+                           if ((link.label === 'Saved' || link.href === '/saved') && !user) return null;
+                           if ((link.label === 'Dashboard' || link.href === '/dashboard/components') && !user) return null;
+                           if ((link.label === 'Settings' || link.href === '/settings') && !user) return null;
+
+                           const isActive = link.href.startsWith('/marketplace')
+                            ? pathname.startsWith(link.href)
+                            : pathname === href;
+
+                           return (
+                            <Link
+                                key={link.href}
+                                href={href}
+                                onClick={() => setOpen(false)}
+                                className={cn(
+                                'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
+                                isActive && 'text-primary bg-muted'
+                                )}
+                            >
+                                <link.icon className="h-4 w-4" />
+                                {link.label}
+                            </Link>
+                           );
+                        })}
+                    </div>
+                )
+            })}
         </div>
       </SheetContent>
     </Sheet>

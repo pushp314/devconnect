@@ -21,9 +21,14 @@ export const navSections = [
     items: [
       { label: 'Feed', href: '/feed', icon: Home },
       { label: 'Explore', href: '/explore', icon: Compass },
-      { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag },
       { label: 'Docs', href: '/docs', icon: BookOpen },
       { label: 'Community', href: '/community', icon: Users },
+    ],
+  },
+   {
+    title: 'Shop',
+    items: [
+      { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag },
     ],
   },
   {
