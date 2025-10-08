@@ -33,7 +33,7 @@ type UserProfile = User & {
     followers: Follows[];
     following: Follows[];
     savedSnippets: (SavedSnippet & { snippet: PopulatedSnippetForProfile })[];
-    savedDocs: (DocumentSave & { document: PopulatedDocForProfile })[];
+    documentSaves: (DocumentSave & { document: PopulatedDocForProfile })[];
 }
 
 export async function getUserProfile(username: string) {
@@ -75,7 +75,7 @@ export async function getUserProfile(username: string) {
           },
         },
       },
-      savedDocs: {
+      documentSaves: {
         include: {
           document: {
             include: {
@@ -151,7 +151,7 @@ export async function getUserProfile(username: string) {
     snippets: processItems(user.snippets, currentUserId),
     documents: processItems(user.documents, currentUserId),
     savedSnippets: processSavedSnippets(user.savedSnippets, currentUserId),
-    savedDocuments: processSavedDocs(user.savedDocs, currentUserId),
+    savedDocuments: processSavedDocs(user.documentSaves, currentUserId),
     isFollowing,
     followersCount: user._count.followers,
     followingCount: user._count.following,
