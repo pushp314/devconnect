@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -12,6 +13,9 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 import { SnippetActionsMenu } from "./snippet-actions-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReactLivePreview } from "./preview/ReactLivePreview";
+import { isCodeSafeForPreview } from "@/lib/previewSecurity";
+import { AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 type PopulatedSnippet = Snippet & {
   author: User;
@@ -32,10 +36,13 @@ const previewLanguages = ["React", "HTML", "JavaScript"];
 export function SnippetCard({ snippet }: SnippetCardProps) {
   const user = useCurrentUser();
   const isAuthor = user?.id === snippet.authorId;
+  
   const isPreviewable = previewLanguages.includes(snippet.language);
+  const isCodeSafe = isCodeSafeForPreview(snippet.code);
+  const canShowPreview = isPreviewable && isCodeSafe;
 
   const renderContent = () => {
-    if (isPreviewable && snippet.language === 'React') {
+    if (canShowPreview && snippet.language === 'React') {
       return (
         <Tabs defaultValue="preview" className="flex-1 flex flex-col min-h-0">
           <TabsList className="grid w-full grid-cols-2">
@@ -53,11 +60,23 @@ export function SnippetCard({ snippet }: SnippetCardProps) {
         </Tabs>
       );
     }
-    // Fallback for non-previewable languages
+
+    // Fallback for non-previewable or unsafe languages
     return (
-        <div className="flex-grow my-2 relative rounded-lg border overflow-hidden">
-             <div className="absolute inset-0 overflow-y-auto">
-                <CodeBlock code={snippet.code} language={snippet.language.toLowerCase()} />
+        <div className="flex-grow my-2 flex flex-col gap-2">
+            {!isCodeSafe && isPreviewable && (
+                 <Alert variant="destructive" className="text-xs">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Preview Disabled</AlertTitle>
+                    <AlertDescription>
+                        This snippet contains code that is not allowed in live previews.
+                    </AlertDescription>
+                </Alert>
+            )}
+            <div className="flex-grow relative rounded-lg border overflow-hidden">
+                <div className="absolute inset-0 overflow-y-auto">
+                    <CodeBlock code={snippet.code} language={snippet.language.toLowerCase()} />
+                </div>
             </div>
         </div>
     );
