@@ -1,3 +1,4 @@
+
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -5,34 +6,22 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Start seeding...');
 
-  // Create Users
-  const user1 = await prisma.user.upsert({
-    where: { email: 'alice@example.com' },
+  // Create or find the admin user
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'pusprajsharma314@gmail.com' },
     update: {},
     create: {
-      email: 'alice@example.com',
-      name: 'Alice Johnson',
-      username: 'alice',
-      image: 'https://i.pravatar.cc/150?u=alice',
-      bio: 'Full-stack developer with a passion for open-source and React.',
+      email: 'pusprajsharma314@gmail.com',
+      name: 'Pushp Raj Sharma',
+      username: 'pusprajsharma314',
+      image: 'https://lh3.googleusercontent.com/a/ACg8ocKAaiDrkrfvu3C6GFOJ_36ICnQRa8xaU9PeyNs_B5MWDL0aKNq1=s96-c',
+      bio: 'Administrator and lead developer of CodeStudio.',
     },
   });
 
-  const user2 = await prisma.user.upsert({
-    where: { email: 'bob@example.com' },
-    update: {},
-    create: {
-      email: 'bob@example.com',
-      name: 'Bob Williams',
-      username: 'bob',
-      image: 'https://i.pravatar.cc/150?u=bob',
-      bio: 'Backend engineer specializing in Node.js, Python, and cloud infrastructure.',
-    },
-  });
+  console.log('Found/Created admin user:', { adminUser });
 
-  console.log('Created users:', { user1, user2 });
-
-  // Create Snippets
+  // Create Snippets authored by the admin user
   const snippet1 = await prisma.snippet.create({
     data: {
       title: 'React Debounce Hook',
@@ -56,7 +45,7 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }`,
       tags: ['react', 'hook', 'typescript', 'debounce'],
-      authorId: user1.id,
+      authorId: adminUser.id,
     },
   });
 
@@ -76,7 +65,7 @@ def hello():
 if __name__ == '__main__':
     app.run(debug=True)`,
       tags: ['python', 'flask', 'api', 'backend'],
-      authorId: user2.id,
+      authorId: adminUser.id,
     },
   });
 
@@ -102,14 +91,14 @@ if __name__ == '__main__':
 fetchData('https://api.example.com/data')
   .then(data => console.log(data));`,
       tags: ['javascript', 'fetch', 'async-await', 'api'],
-      authorId: user1.id,
+      authorId: adminUser.id,
     },
   });
 
 
   console.log('Created snippets:', { snippet1, snippet2, snippet3 });
 
-  // Create Documents
+  // Create Documents authored by the admin user
   const doc1 = await prisma.document.create({
     data: {
       title: 'Getting Started with Next.js',
@@ -133,7 +122,7 @@ npx create-next-app@latest
 - **API Routes**: Easily create API endpoints within your Next.js application.
       `,
       tags: ['nextjs', 'react', 'tutorial', 'webdev'],
-      authorId: user1.id,
+      authorId: adminUser.id,
     },
   });
 
@@ -171,7 +160,7 @@ model Post {
 This schema defines a one-to-many relationship between \`User\` and \`Post\`.
       `,
       tags: ['prisma', 'database', 'orm', 'tutorial'],
-      authorId: user2.id,
+      authorId: adminUser.id,
     },
   });
 
