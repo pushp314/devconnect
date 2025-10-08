@@ -11,10 +11,7 @@ import { SnippetInteraction } from "./snippet-interaction";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { SnippetActionsMenu } from "./snippet-actions-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LiveProvider, LiveError, LivePreview } from 'react-live';
-import * as LucideReact from 'lucide-react';
-import { Button } from "./ui/button";
-import { cn } from "@/lib/utils";
+import { ReactLivePreview } from "./preview/ReactLivePreview";
 
 type PopulatedSnippet = Snippet & {
   author: User;
@@ -30,15 +27,6 @@ interface SnippetCardProps {
   snippet: PopulatedSnippet;
 }
 
-const reactLiveScope = {
-    React,
-    useState,
-    ...React,
-    ...LucideReact,
-    Button,
-    cn,
-};
-
 const previewLanguages = ["React", "HTML", "JavaScript"];
 
 export function SnippetCard({ snippet }: SnippetCardProps) {
@@ -47,25 +35,22 @@ export function SnippetCard({ snippet }: SnippetCardProps) {
   const isPreviewable = previewLanguages.includes(snippet.language);
 
   const renderContent = () => {
-    if (isPreviewable) {
+    if (isPreviewable && snippet.language === 'React') {
       return (
-        <LiveProvider code={snippet.code} scope={reactLiveScope} noInline={true}>
-          <Tabs defaultValue="preview" className="flex-1 flex flex-col min-h-0">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="preview">Preview</TabsTrigger>
-              <TabsTrigger value="code">Code</TabsTrigger>
-            </TabsList>
-            <TabsContent value="preview" className="flex-grow my-2 relative rounded-lg border overflow-hidden bg-muted/20">
-              <LivePreview className="p-4 h-full w-full flex items-center justify-center" />
-              <LiveError className="absolute bottom-0 left-0 right-0 bg-destructive text-destructive-foreground p-2 text-xs font-mono z-10" />
-            </TabsContent>
-            <TabsContent value="code" className="flex-grow my-2 relative rounded-lg border overflow-hidden">
-              <div className="absolute inset-0 overflow-y-auto">
-                <CodeBlock code={snippet.code} language={snippet.language.toLowerCase()} />
-              </div>
-            </TabsContent>
-          </Tabs>
-        </LiveProvider>
+        <Tabs defaultValue="preview" className="flex-1 flex flex-col min-h-0">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="preview">Preview</TabsTrigger>
+            <TabsTrigger value="code">Code</TabsTrigger>
+          </TabsList>
+          <TabsContent value="preview" className="flex-grow my-2 relative rounded-lg border overflow-hidden bg-muted/20">
+             <ReactLivePreview code={snippet.code} />
+          </TabsContent>
+          <TabsContent value="code" className="flex-grow my-2 relative rounded-lg border overflow-hidden">
+            <div className="absolute inset-0 overflow-y-auto">
+              <CodeBlock code={snippet.code} language={snippet.language.toLowerCase()} />
+            </div>
+          </TabsContent>
+        </Tabs>
       );
     }
     // Fallback for non-previewable languages
