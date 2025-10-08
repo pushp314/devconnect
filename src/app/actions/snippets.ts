@@ -371,7 +371,7 @@ export async function addSnippetComment(values: z.infer<typeof commentSchema>) {
 
   const { content, snippetId } = validatedFields.data;
   
-  const snippet = await db.snippet.findUnique({ where: { id: snippetId }});
+  const snippet = await db.snippet.findUnique({ where: { id: snippetId }, include: { author: true }});
   if (!snippet) throw new Error('Snippet not found');
 
   await db.comment.create({
@@ -384,7 +384,11 @@ export async function addSnippetComment(values: z.infer<typeof commentSchema>) {
   
   // Create notifications
   const mentionRegex = /@(\w+)/g;
-  const mentions = content.match(mentionRegex)?.map(m => m.substring(1)) || [];
+  let match;
+  const mentions: string[] = [];
+  while ((match = mentionRegex.exec(content)) !== null) {
+      mentions.push(match[1]);
+  }
   
   // Notify author if they weren't mentioned and didn't post the comment
   if (session.user.id !== snippet.authorId && !mentions.includes(snippet.author.username!)) {
