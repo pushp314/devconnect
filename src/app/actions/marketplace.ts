@@ -92,6 +92,7 @@ const uploadComponentSchema = z.object({
     tags: z.array(z.string()).min(1).max(10),
     previewUrls: z.array(z.string().url()).min(1),
     zipFileUrl: z.string().url(),
+    livePreviewUrl: z.string().url().optional().or(z.literal('')),
 });
 
 export async function uploadComponent(values: z.infer<typeof uploadComponentSchema>) {
@@ -106,7 +107,7 @@ export async function uploadComponent(values: z.infer<typeof uploadComponentSche
         throw new Error('Invalid component data.');
     }
 
-    const { title, description, price, tags, previewUrls, zipFileUrl } = validatedFields.data;
+    const { title, description, price, tags, previewUrls, zipFileUrl, livePreviewUrl } = validatedFields.data;
 
     await db.component.create({
         data: {
@@ -116,6 +117,7 @@ export async function uploadComponent(values: z.infer<typeof uploadComponentSche
             tags,
             previewUrls,
             zipFileUrl,
+            livePreviewUrl,
             creatorId: session.user.id,
             status: 'pending',
         }

@@ -14,7 +14,7 @@ import { ComponentPurchaseClient } from "@/components/marketplace/component-purc
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Eye } from "lucide-react";
 import { StarRating } from "@/components/marketplace/star-rating";
 import { Separator } from "@/components/ui/separator";
 import { ReviewSection } from "@/components/marketplace/reviews/review-section";
@@ -101,16 +101,27 @@ export default async function ComponentDetailPage({ params }: { params: { id: st
                   {component.price === 0 ? "Free Download" : `₹${component.price}`}
               </h2>
               
-              {hasPurchased ? (
-                  <Button asChild className="w-full text-lg h-12">
-                    <a href={component.zipFileUrl} download>
-                      <Download className="mr-2" />
-                      Download
+              <div className="flex flex-col gap-3">
+                {hasPurchased ? (
+                    <Button asChild className="w-full text-lg h-12">
+                      <a href={component.zipFileUrl} download>
+                        <Download className="mr-2" />
+                        Download
+                      </a>
+                    </Button>
+                ) : (
+                  <ComponentPurchaseClient component={component} />
+                )}
+
+                {component.livePreviewUrl && (
+                  <Button asChild variant="outline" className="w-full text-lg h-12">
+                    <a href={component.livePreviewUrl} target="_blank" rel="noopener noreferrer">
+                      <Eye className="mr-2" />
+                      Live Preview
                     </a>
                   </Button>
-              ) : (
-                <ComponentPurchaseClient component={component} />
-              )}
+                )}
+              </div>
               
 
               <div className="mt-8">

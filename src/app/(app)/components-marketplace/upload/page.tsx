@@ -31,6 +31,7 @@ const formSchema = z.object({
   tags: z.array(z.string()).min(1, "Please add at least one tag.").max(10),
   previewImages: z.custom<FileList>().refine(files => files.length > 0, 'At least one preview image is required.'),
   componentZip: z.custom<FileList>().refine(files => files.length === 1, 'A single ZIP file is required.'),
+  livePreviewUrl: z.string().url("Please enter a valid URL.").optional().or(z.literal('')),
 });
 
 export default function UploadComponentPage() {
@@ -46,6 +47,7 @@ export default function UploadComponentPage() {
       description: "",
       price: 0,
       tags: [],
+      livePreviewUrl: "",
     },
   });
   
@@ -92,6 +94,7 @@ export default function UploadComponentPage() {
         tags: values.tags,
         previewUrls: previewUrls,
         zipFileUrl: zipFileUrl,
+        livePreviewUrl: values.livePreviewUrl,
       });
 
       toast({
@@ -188,6 +191,18 @@ export default function UploadComponentPage() {
                     <FormLabel>Component File (ZIP)</FormLabel>
                     <FormControl><Input type="file" accept=".zip" {...form.register('componentZip')} /></FormControl>
                      <FormDescription>Package your component code in a single ZIP file.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="livePreviewUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Live Preview URL (Optional)</FormLabel>
+                    <FormControl><Input placeholder="https://your-live-preview.com" {...field} /></FormControl>
+                    <FormDescription>Link to a live demo of your component (e.g., on CodeSandbox, StackBlitz).</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
