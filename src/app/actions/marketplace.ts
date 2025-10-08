@@ -90,8 +90,8 @@ const uploadComponentSchema = z.object({
     description: z.string().min(10).max(1000),
     price: z.number().min(0),
     tags: z.array(z.string()).min(1).max(10),
-    previewUrls: z.array(z.string()).min(1),
-    zipFileUrl: z.string().min(1),
+    previewUrls: z.array(z.string().url()).min(1),
+    zipFileUrl: z.string().url(),
 });
 
 export async function uploadComponent(values: z.infer<typeof uploadComponentSchema>) {
@@ -101,7 +101,7 @@ export async function uploadComponent(values: z.infer<typeof uploadComponentSche
     }
 
     const validatedFields = uploadComponentSchema.safeParse(values);
-    if (!validatedFields.error) {
+    if (!validatedFields.success) {
         console.error(validatedFields.error);
         throw new Error('Invalid component data.');
     }
@@ -115,13 +115,13 @@ export async function uploadComponent(values: z.infer<typeof uploadComponentSche
             price,
             tags,
             previewUrls,
-            zipFileUrl, // This should be zipFileUrl based on the previous implementation
+            zipFileUrl,
             creatorId: session.user.id,
             status: 'pending',
         }
     });
 
-    revalidatePath('/marketplace');
+    revalidatePath('/components-marketplace');
     revalidatePath('/dashboard/components');
 }
 
@@ -164,7 +164,7 @@ export async function createOrder({
     },
   });
 
-  revalidatePath(`/marketplace/${componentId}`);
+  revalidatePath(`/components-marketplace/${componentId}`);
   revalidatePath('/dashboard/components');
   return order;
 }
@@ -192,7 +192,7 @@ export async function downloadFreeComponent(componentId: string) {
         await createOrder({ componentId, amount: 0 });
     }
 
-    revalidatePath(`/marketplace/${componentId}`);
+    revalidatePath(`/components-marketplace/${componentId}`);
     return { fileUrl: component.zipFileUrl };
 }
 
@@ -266,7 +266,7 @@ async function updateComponentStatus(componentId: string, status: "approved" | "
         data: { status },
     });
     revalidatePath('/admin/components');
-    revalidatePath('/marketplace');
+    revalidatePath('/components-marketplace');
 }
 
 export async function approveComponent(componentId: string) {
@@ -331,5 +331,5 @@ export async function submitReview(values: z.infer<typeof reviewSchema>) {
     });
 
     // 4. Revalidate the component page
-    revalidatePath(`/marketplace/${componentId}`);
+    revalidatePath(`/components-marketplace/${componentId}`);
 }
