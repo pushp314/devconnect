@@ -11,25 +11,42 @@ export type PopulatedMarketplaceComponent = Component & {
     creator: User
 }
 
-export async function getMarketplaceComponents({ query }: { query?: string }) {
-  const components = await db.component.findMany({
-    where: {
+export async function getMarketplaceComponents({ query, sortBy = 'newest' }: { query?: string, sortBy?: string }) {
+  const whereClause: any = {
       status: 'approved',
-      OR: query
-        ? [
-            { title: { contains: query, mode: 'insensitive' } },
-            { description: { contains: query, mode: 'insensitive' } },
-            { tags: { has: query } },
-          ]
-        : undefined,
-    },
-    orderBy: { createdAt: 'desc' },
+  };
+  if (query) {
+      whereClause.OR = [
+          { title: { contains: query, mode: 'insensitive' } },
+          { description: { contains: query, mode: 'insensitive' } },
+          { tags: { has: query } },
+      ];
+  }
+
+  let orderBy: any;
+  switch (sortBy) {
+    case 'price-asc':
+      orderBy = { price: 'asc' };
+      break;
+    case 'price-desc':
+      orderBy = { price: 'desc' };
+      break;
+    case 'newest':
+    default:
+      orderBy = { createdAt: 'desc' };
+      break;
+  }
+
+  const components = await db.component.findMany({
+    where: whereClause,
+    orderBy: orderBy,
     include: {
       creator: true,
     },
   });
   return components as PopulatedMarketplaceComponent[];
 }
+
 
 export async function getMarketplaceComponentById(id: string) {
     const session = await auth();
