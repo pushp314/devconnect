@@ -3,12 +3,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SnippetCard } from "@/components/snippet-card";
 import { DocCard } from "@/components/doc-card";
-import { AtSign, Github, Twitter, Code, BookOpen } from "lucide-react";
+import { AtSign, Github, Instagram, Code, BookOpen, UserX } from "lucide-react";
 import { getUserProfile } from "@/app/actions/users";
 import type { User, Snippet, Document as DocType, Like, Comment, SavedSnippet, DocumentSave } from "@prisma/client";
 import { FollowButton } from "@/components/follow-button";
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
+import { auth } from "@/lib/auth";
+import { UserActions } from "@/components/user-actions";
 
 type PopulatedSnippet = Snippet & {
   author: User;
@@ -26,6 +28,9 @@ type PopulatedDoc = DocType & {
 
 
 export default async function ProfilePage({ params }: { params: { userId: string } }) {
+  const session = await auth();
+  const currentUserId = session?.user?.id;
+
   const profile = await getUserProfile(params.userId);
 
   if (!profile) {
@@ -39,6 +44,18 @@ export default async function ProfilePage({ params }: { params: { userId: string
 
   const savedSnippets = profile.savedSnippets as PopulatedSnippet[];
   const savedDocuments = profile.savedDocuments as PopulatedDoc[];
+  
+  const isOwnProfile = currentUserId === user.id;
+
+  if (profile.isBlockedByCurrentUser || profile.isBlockingCurrentUser) {
+      return (
+         <div className="container py-8 text-center">
+            <UserX className="mx-auto h-16 w-16 text-muted-foreground" />
+            <h1 className="mt-4 text-2xl font-bold font-headline">Profile Unavailable</h1>
+            <p className="mt-2 text-muted-foreground">You cannot view this profile due to a block.</p>
+        </div>
+      )
+  }
 
 
   return (
@@ -49,7 +66,12 @@ export default async function ProfilePage({ params }: { params: { userId: string
           <AvatarFallback className="text-3xl md:text-4xl">{userInitials}</AvatarFallback>
         </Avatar>
         <div className="flex-1 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold font-headline">{user.name}</h1>
+          <div className="flex items-center justify-center gap-4">
+            <h1 className="text-3xl md:text-4xl font-bold font-headline">{user.name}</h1>
+            {!isOwnProfile && currentUserId && (
+                <UserActions targetUserId={user.id} />
+            )}
+          </div>
           <div className="flex items-center justify-center gap-2 text-muted-foreground mt-1">
              <AtSign className="h-4 w-4" />
             <span>{user.username}</span>
@@ -63,10 +85,10 @@ export default async function ProfilePage({ params }: { params: { userId: string
                 </Link>
               </Button>
             )}
-            {user.twitterUrl && (
+            {user.instagramUrl && (
               <Button variant="ghost" size="icon" asChild>
-                <Link href={user.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
-                    <Twitter className="h-5 w-5" />
+                <Link href={user.instagramUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
+                    <Instagram className="h-5 w-5" />
                 </Link>
               </Button>
             )}
@@ -90,10 +112,12 @@ export default async function ProfilePage({ params }: { params: { userId: string
             </div>
           </div>
            <div className="mt-6">
-             <FollowButton
-                targetUserId={user.id}
-                isFollowing={profile.isFollowing}
-             />
+             {!isOwnProfile && (
+                <FollowButton
+                    targetUserId={user.id}
+                    isFollowing={profile.isFollowing}
+                />
+             )}
            </div>
         </div>
       </header>

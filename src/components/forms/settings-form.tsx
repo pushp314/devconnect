@@ -31,7 +31,7 @@ const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
   bio: z.string().max(200, 'Bio must be less than 200 characters.').optional(),
   githubUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
-  twitterUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
+  instagramUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
 });
 
 interface SettingsFormProps {
@@ -48,7 +48,7 @@ export function SettingsForm({ profile }: SettingsFormProps) {
       name: profile.name ?? "",
       bio: profile.bio ?? "",
       githubUrl: profile.githubUrl ?? "",
-      twitterUrl: profile.twitterUrl ?? "",
+      instagramUrl: profile.instagramUrl ?? "",
     },
   });
 
@@ -114,12 +114,12 @@ export function SettingsForm({ profile }: SettingsFormProps) {
           />
           <FormField
             control={form.control}
-            name="twitterUrl"
+            name="instagramUrl"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Twitter / X</FormLabel>
+                <FormLabel>Instagram</FormLabel>
                 <FormControl>
-                  <Input placeholder="https://twitter.com/username" {...field} value={field.value ?? ''} />
+                  <Input placeholder="https://instagram.com/username" {...field} value={field.value ?? ''} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

@@ -12,7 +12,7 @@ const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
   bio: z.string().max(200, 'Bio must be less than 200 characters.').optional(),
   githubUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
-  twitterUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
+  instagramUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
 });
 
 type PopulatedSnippetForProfile = Snippet & {
@@ -59,6 +59,41 @@ export async function getUserProfile(username: string) {
   if (!user) {
     return null;
   }
+
+  // --- Block check ---
+  let isBlockedByCurrentUser = false;
+  let isBlockingCurrentUser = false;
+
+  if (currentUserId && currentUserId !== user.id) {
+    const blockAsBlocker = await db.blockedUser.findFirst({
+        where: { blockerId: currentUserId, blockedId: user.id }
+    });
+    isBlockedByCurrentUser = !!blockAsBlocker;
+
+    const blockAsBlocked = await db.blockedUser.findFirst({
+        where: { blockerId: user.id, blockedId: currentUserId }
+    });
+    isBlockingCurrentUser = !!blockAsBlocked;
+  }
+
+  // If there's a block, return minimal info immediately
+  if (isBlockedByCurrentUser || isBlockingCurrentUser) {
+      return {
+          ...user,
+          snippets: [],
+          documents: [],
+          savedSnippets: [],
+          savedDocuments: [],
+          isFollowing: false,
+          followersCount: 0,
+          followingCount: 0,
+          snippetsCount: 0,
+          documentsCount: 0,
+          isBlockedByCurrentUser,
+          isBlockingCurrentUser
+      }
+  }
+
 
   // Determine if the current user can see private snippets
   const canViewPrivate = currentUserId === user.id || (currentUserId ? !!(await db.follows.findFirst({ where: { followerId: currentUserId, followingId: user.id } })) : false);
@@ -171,6 +206,8 @@ export async function getUserProfile(username: string) {
     followingCount: user._count.following,
     snippetsCount: user._count.snippets,
     documentsCount: user._count.documents,
+    isBlockedByCurrentUser,
+    isBlockingCurrentUser,
   };
 }
 
@@ -236,7 +273,7 @@ export async function updateUserProfile(values: z.infer<typeof profileSchema>) {
       throw new Error("Invalid profile data.");
   }
 
-  const { name, bio, githubUrl, twitterUrl } = validatedFields.data;
+  const { name, bio, githubUrl, instagramUrl } = validatedFields.data;
 
   const updatedUser = await db.user.update({
     where: { id: session.user.id },
@@ -244,7 +281,7 @@ export async function updateUserProfile(values: z.infer<typeof profileSchema>) {
       name,
       bio: bio ?? null,
       githubUrl: githubUrl ?? null,
-      twitterUrl: twitterUrl ?? null,
+      instagramUrl: instagramUrl ?? null,
     },
   });
 
@@ -448,4 +485,97 @@ export async function getRecommendedItems() {
             commentsCount: doc._count.comments,
         }))
     };
-  }
+}
+
+
+// --- User Blocking and Reporting ---
+
+export async function blockUser(targetUserId: string) {
+    const session = await auth();
+    const currentUserId = session?.user?.id;
+
+    if (!currentUserId) throw new Error('Authentication required.');
+    if (currentUserId === targetUserId) throw new Error("You cannot block yourself.");
+
+    await db.blockedUser.create({
+        data: {
+            blockerId: currentUserId,
+            blockedId: targetUserId,
+        }
+    });
+
+    // Also remove any existing follow relationships
+    await db.follows.deleteMany({
+        where: {
+            OR: [
+                { followerId: currentUserId, followingId: targetUserId },
+                { followerId: targetUserId, followingId: currentUserId },
+            ]
+        }
+    });
+
+    revalidatePath(`/${targetUserId}`);
+    revalidatePath('/settings');
+}
+
+export async function unblockUser(targetUserId: string) {
+    const session = await auth();
+    const currentUserId = session?.user?.id;
+
+    if (!currentUserId) throw new Error('Authentication required.');
+
+    await db.blockedUser.deleteMany({
+        where: {
+            blockerId: currentUserId,
+            blockedId: targetUserId,
+        }
+    });
+    
+    revalidatePath(`/${targetUserId}`);
+    revalidatePath('/settings');
+}
+
+const reportUserSchema = z.object({
+  targetUserId: z.string(),
+  reason: z.string().min(10, "Please provide a reason with at least 10 characters."),
+});
+
+export async function reportUser(values: z.infer<typeof reportUserSchema>) {
+    const session = await auth();
+    const currentUserId = session?.user?.id;
+
+    if (!currentUserId) throw new Error('Authentication required.');
+
+    const validatedFields = reportUserSchema.safeParse(values);
+    if (!validatedFields.success) {
+        throw new Error('Invalid report data.');
+    }
+
+    const { targetUserId, reason } = validatedFields.data;
+
+    if (currentUserId === targetUserId) throw new Error("You cannot report yourself.");
+
+    await db.userReport.create({
+        data: {
+            reporterId: currentUserId,
+            reportedId: targetUserId,
+            reason: reason,
+        }
+    });
+}
+
+export async function getBlockedUsers() {
+    const session = await auth();
+    const currentUserId = session?.user?.id;
+
+    if (!currentUserId) return [];
+
+    const blocks = await db.blockedUser.findMany({
+        where: { blockerId: currentUserId },
+        include: {
+            blocked: true,
+        }
+    });
+
+    return blocks.map(b => b.blocked);
+}
