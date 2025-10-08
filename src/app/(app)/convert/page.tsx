@@ -155,7 +155,7 @@ export default function ConvertPage() {
                                     <Loader2 className="h-10 w-10 animate-spin text-primary" />
                                     <p className="text-sm text-muted-foreground">Converting code...</p>
                                 </div>
-                            ) : convertedCode ? (
+                            ) : convertedCode && targetLang ? (
                                 <div className="absolute inset-0">
                                     <CodeBlock code={convertedCode} language={targetLang.toLowerCase()} />
                                 </div>
