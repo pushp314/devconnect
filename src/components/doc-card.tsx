@@ -2,13 +2,13 @@ import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import type { Document as DocType, User, Like, Comment } from "@prisma/client";
+import type { Document as DocType, User, DocumentLike, DocumentComment } from "@prisma/client";
 import { ClientTime } from "./client-time";
 
 type PopulatedDoc = DocType & {
   author: User;
-  likes: Like[];
-  comments: Comment[];
+  likes: DocumentLike[];
+  comments: DocumentComment[];
 }
 
 interface DocCardProps {

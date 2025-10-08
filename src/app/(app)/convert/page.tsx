@@ -99,9 +99,7 @@ export default function ConvertPage() {
                                         value={sourceCode}
                                         onChange={(e) => setSourceCode(e.target.value)}
                                         className="absolute inset-0 z-10 font-code text-sm !bg-transparent p-4 rounded-md border resize-none"
-                                        style={{...style, fontFamily: '"Source Code Pro", monospace'}}
-                                        padding-top={16}
-                                        padding-left={16}
+                                        style={{...style, fontFamily: '"Source Code Pro", monospace', color: 'transparent', caretColor: 'var(--foreground)'}}
                                     />
                                     <pre
                                         className={`${className} absolute inset-0 p-4 rounded-md pointer-events-none`}

@@ -37,7 +37,7 @@ export function UsersTable({ users }: UsersTableProps) {
                         <TableCell>
                             <div className="flex items-center gap-3">
                                 <Avatar>
-                                    <AvatarImage src={user.image ?? undefined} alt={user.name ?? ''} data-ai-hint="person face" />
+                                    <AvatarImage src={user.image ?? undefined} alt={user.name ?? ''} data-ai-hint="person face"/>
                                     <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div>

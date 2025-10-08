@@ -82,7 +82,13 @@ export function NotificationBell() {
                                 <div className="flex-grow">
                                      <p className="text-sm leading-snug">{notification.message}</p>
                                      <p className="text-xs text-muted-foreground mt-1">
-                                        <ClientTime date={notification.createdAt} />
+                                        <ClientTime date={notification.createdAt} format={{
+                                            year: undefined,
+                                            month: undefined,
+                                            day: undefined,
+                                            hour: 'numeric',
+                                            minute: '2-digit'
+                                        }}/>
                                      </p>
                                 </div>
                                 {!notification.read && (

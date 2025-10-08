@@ -145,8 +145,8 @@ export function SnippetCard({ snippet }: SnippetCardProps) {
             <Link href={`/${snippet.author.username}`} className="font-semibold hover:underline">
               {snippet.author.name}
             </Link>
-            <span className="hidden sm:inline">·</span>
-            <span className="hidden sm:inline"><ClientTime date={snippet.createdAt} /></span>
+            <span className="mx-1">·</span>
+            <ClientTime date={snippet.createdAt} />
             {snippet.forkedFrom && (
                 <span className="text-xs flex items-center gap-1">
                     <GitFork className="h-3 w-3" /> Forked from <Link href={`/snippets/${snippet.forkedFrom.id}`} className="font-medium hover:underline">{snippet.forkedFrom.author.name}</Link>
