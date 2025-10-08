@@ -9,6 +9,7 @@ import { auth } from "@/lib/auth";
 import { UpvoteButton } from "@/components/upvote-button";
 import { Separator } from "@/components/ui/separator";
 import { CommentSection } from "@/components/comments/comment-section";
+import { ClientTime } from "@/components/client-time";
 
 export default async function BugDetailPage({ params }: { params: { id: string } }) {
   const session = await auth();
@@ -36,7 +37,7 @@ export default async function BugDetailPage({ params }: { params: { id: string }
                     </Link>
                 </div>
                 <span className="text-sm text-muted-foreground">
-                    Reported on {new Date(bug.createdAt).toLocaleDateString()}
+                    Reported on <ClientTime date={bug.createdAt} />
                 </span>
             </CardDescription>
         </CardHeader>

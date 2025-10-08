@@ -20,6 +20,7 @@ import { HTMLPreview } from "./preview/HTMLPreview";
 import { JSPreview } from "./preview/JSPreview";
 import { PyodidePreview } from "./preview/PyodidePreview";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { ClientTime } from "./client-time";
 
 type PopulatedSnippet = Snippet & {
   author: User;
@@ -118,7 +119,7 @@ export function SnippetCard({ snippet }: SnippetCardProps) {
               {snippet.author.name}
             </Link>
             <span className="hidden sm:inline">·</span>
-            <time dateTime={snippet.createdAt.toISOString()} className="hidden sm:inline">{new Date(snippet.createdAt).toLocaleDateString()}</time>
+            <span className="hidden sm:inline"><ClientTime date={snippet.createdAt} /></span>
             {snippet.forkedFrom && (
                 <span className="text-xs flex items-center gap-1">
                     <GitFork className="h-3 w-3" /> Forked from <Link href={`/snippets/${snippet.forkedFrom.id}`} className="font-medium hover:underline">{snippet.forkedFrom.author.name}</Link>

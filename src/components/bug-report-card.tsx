@@ -19,6 +19,7 @@ import { upvoteBug } from "@/app/actions/bugs";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { ClientTime } from "./client-time";
 
 type PopulatedBug = Bug & {
   reporter: User;
@@ -76,9 +77,7 @@ export function BugReportCard({ bug }: BugReportCardProps) {
             {bug.reporter.name}
           </Link>
           <span className="mx-1">·</span>
-          <time dateTime={bug.createdAt.toISOString()}>
-            {new Date(bug.createdAt).toLocaleDateString()}
-          </time>
+          <ClientTime date={bug.createdAt} />
         </CardDescription>
       </CardHeader>
       <CardContent>

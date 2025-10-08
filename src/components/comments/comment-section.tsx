@@ -10,6 +10,7 @@ import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CommentForm } from "./comment-form";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { ClientTime } from "../client-time";
 
 type AnyComment = (CommentType | DocumentComment | BugComment) & { author: User };
 
@@ -84,9 +85,9 @@ export function CommentSection({ snippetId, documentId, bugId, isSheet = false }
                   <Link href={`/${comment.author?.username}`} className="font-semibold text-sm hover:underline">
                     {comment.author?.name}
                   </Link>
-                  <time className="text-xs text-muted-foreground">
-                    {new Date(comment.createdAt).toLocaleDateString()}
-                  </time>
+                  <span className="text-xs text-muted-foreground">
+                    <ClientTime date={comment.createdAt} />
+                  </span>
                 </div>
                 <p className="text-sm mt-1">{comment.content}</p>
               </div>

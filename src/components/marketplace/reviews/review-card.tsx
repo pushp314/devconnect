@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Review, User } from "@prisma/client";
 import Link from "next/link";
 import { StarRating } from "../star-rating";
+import { ClientTime } from "@/components/client-time";
 
 type PopulatedReview = Review & { user: User };
 
@@ -23,7 +24,9 @@ export function ReviewCard({ review }: ReviewCardProps) {
         </Avatar>
         <div className="flex-1">
           <Link href={`/${user.username}`} className="font-semibold hover:underline">{user.name}</Link>
-          <p className="text-xs text-muted-foreground">{new Date(review.createdAt).toLocaleDateString()}</p>
+          <p className="text-xs text-muted-foreground">
+            <ClientTime date={review.createdAt} />
+          </p>
         </div>
         <StarRating rating={review.rating} />
       </CardHeader>

@@ -15,6 +15,7 @@ import { getNotifications, markAsRead } from "@/app/actions/notifications";
 import type { Notification } from '@prisma/client';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { ClientTime } from "../client-time";
 
 export function NotificationBell() {
     const [notifications, setNotifications] = React.useState<Notification[]>([]);
@@ -81,7 +82,7 @@ export function NotificationBell() {
                                 <div className="flex-grow">
                                      <p className="text-sm leading-snug">{notification.message}</p>
                                      <p className="text-xs text-muted-foreground mt-1">
-                                        {new Date(notification.createdAt).toLocaleDateString()}
+                                        <ClientTime date={notification.createdAt} />
                                      </p>
                                 </div>
                                 {!notification.read && (

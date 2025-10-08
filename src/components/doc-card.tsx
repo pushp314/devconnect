@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import type { Document as DocType, User, Like, Comment } from "@prisma/client";
+import { ClientTime } from "./client-time";
 
 type PopulatedDoc = DocType & {
   author: User;
@@ -29,7 +30,7 @@ export function DocCard({ doc }: DocCardProps) {
             </Avatar>
             <span>{doc.author.name}</span>
             <span className="mx-1">·</span>
-            <time dateTime={doc.createdAt.toISOString()}>{doc.createdAt.toLocaleDateString()}</time>
+            <ClientTime date={doc.createdAt} />
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-grow">

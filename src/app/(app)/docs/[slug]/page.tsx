@@ -12,6 +12,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { DeleteDocButton } from '@/components/delete-doc-button';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { ClientTime } from '@/components/client-time';
 
 const MarkdownComponents = {
   h1: (props: any) => <h1 className="text-4xl font-extrabold font-headline mt-10 mb-4 pb-2 border-b" {...props} />,
@@ -73,7 +74,7 @@ export default async function DocPage({ params }: { params: { slug: string } }) 
             <span className="font-medium text-lg">{author.name}</span>
           </div>
           <span>·</span>
-          <time dateTime={doc.createdAt.toISOString()}>{new Date(doc.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+          <ClientTime date={doc.createdAt} format={{ year: 'numeric', month: 'long', day: 'numeric' }} />
         </div>
       </header>
 
