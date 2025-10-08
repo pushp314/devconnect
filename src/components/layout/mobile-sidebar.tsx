@@ -9,10 +9,12 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Code, Menu } from "lucide-react"
+import { useCurrentUser } from "@/hooks/use-current-user"
 
 export function MobileSidebar() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
+  const user = useCurrentUser();
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -40,20 +42,30 @@ export function MobileSidebar() {
                     <h2 className="text-sm font-semibold tracking-tight text-muted-foreground px-3">
                         {section.title}
                     </h2>
-                     {section.items.map((link) => (
-                    <Link
-                        key={link.href}
-                        href={link.href}
-                        onClick={() => setOpen(false)}
-                        className={cn(
-                        'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
-                        pathname === link.href && 'text-primary bg-muted'
-                        )}
-                    >
-                        <link.icon className="h-4 w-4" />
-                        {link.label}
-                    </Link>
-                    ))}
+                     {section.items.map((link) => {
+                       const href = link.href.includes('[[username]]') 
+                        ? user?.username ? link.href.replace('[[username]]', user.username) : '/auth/signin'
+                        : link.href;
+                      
+                       if (link.label === 'Admin' && user?.email !== 'pusprajsharma314@gmail.com') {
+                        return null;
+                       }
+
+                       return (
+                        <Link
+                            key={link.href}
+                            href={href}
+                            onClick={() => setOpen(false)}
+                            className={cn(
+                            'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
+                            pathname === href && 'text-primary bg-muted'
+                            )}
+                        >
+                            <link.icon className="h-4 w-4" />
+                            {link.label}
+                        </Link>
+                       );
+                    })}
                 </div>
             ))}
         </div>

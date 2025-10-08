@@ -3,19 +3,34 @@
 import { useRouter, usePathname } from 'next/navigation';
 import Dock from './dock';
 import { navSections } from '@/lib/nav-config';
+import { useCurrentUser } from '@/hooks/use-current-user';
 
 export function MobileBottomNav() {
   const router = useRouter();
   const pathname = usePathname();
+  const user = useCurrentUser();
 
   const allNavItems = navSections.flatMap(section => section.items);
 
-  const dockItems = allNavItems.map(item => ({
-    icon: <item.icon size={20} />,
-    label: item.label,
-    onClick: () => router.push(item.href),
-    className: pathname === item.href ? 'bg-primary text-primary-foreground border-primary' : ''
-  }));
+  const dockItems = allNavItems
+    .filter(item => {
+        if (item.label === 'Admin' && user?.email !== 'pusprajsharma314@gmail.com') {
+            return false;
+        }
+        return true;
+    })
+    .map(item => {
+    const href = item.href.includes('[[username]]')
+        ? user?.username ? item.href.replace('[[username]]', user.username) : '/auth/signin'
+        : item.href;
+    
+    return {
+        icon: <item.icon size={20} />,
+        label: item.label,
+        onClick: () => router.push(href),
+        className: pathname === href ? 'bg-primary text-primary-foreground border-primary' : ''
+    }
+  });
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 h-24 z-50 pointer-events-none">
