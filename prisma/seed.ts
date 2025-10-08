@@ -23,132 +23,160 @@ async function main() {
 
   // --- SNIPPETS ---
   const snippets = [
-    // JavaScript
+    // --- React ---
     {
-      title: 'Fetch API with Async/Await',
-      description: 'A clean way to fetch data from an API in JavaScript using async/await syntax.',
-      language: 'JavaScript',
-      code: `async function fetchData(url) {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(\`HTTP error! status: \${response.status}\`);
-    }
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Fetch error:', error);
-  }
-}
-
-// Example usage:
-fetchData('https://api.example.com/data')
-  .then(data => console.log(data));`,
-      tags: ['javascript', 'fetch', 'async-await', 'api'],
-    },
-    {
-      title: 'JavaScript Local Storage Wrapper',
-      description: 'A simple wrapper for localStorage to handle JSON serialization and parsing automatically.',
-      language: 'JavaScript',
-      code: `const storage = {
-  get: (key) => {
-    try {
-      const value = window.localStorage.getItem(key);
-      return value ? JSON.parse(value) : null;
-    } catch (e) {
-      console.error('Error getting from localStorage', e);
-      return null;
-    }
-  },
-  set: (key, value) => {
-    try {
-      window.localStorage.setItem(key, JSON.stringify(value));
-    } catch (e) {
-      console.error('Error setting to localStorage', e);
-    }
-  },
-  remove: (key) => {
-    window.localStorage.removeItem(key);
-  }
-};`,
-      tags: ['javascript', 'localstorage', 'utility'],
-    },
-    // TypeScript
-    {
-      title: 'React Debounce Hook',
-      description: 'A custom React hook to debounce any value. Useful for handling user input in search fields.',
-      language: 'TypeScript',
-      code: `import { useState, useEffect } from 'react';
-
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
+      title: 'Interactive Counter Button',
+      description: 'A simple React component demonstrating state management with a counter button. Click the button to increment the number.',
+      language: 'React',
+      code: `() => {
+    const [count, setCount] = React.useState(0);
+    return (
+        <div className="flex flex-col items-center gap-4 text-center p-4">
+            <h3 className="font-headline text-xl">React Counter</h3>
+            <p className="text-muted-foreground text-sm">Click the button below to see the count increase.</p>
+            <Button onClick={() => setCount(count + 1)} className="w-48">
+                <MousePointerClick className="mr-2" />
+                Clicked {count} times
+            </Button>
+        </div>
+    )
 }`,
-      tags: ['react', 'hook', 'typescript', 'debounce'],
+      tags: ['react', 'state', 'hooks', 'button', 'interactive'],
     },
     {
-        title: "TypeScript Enum for API Status",
-        description: "A TypeScript enum to represent the status of an API request.",
-        language: "TypeScript",
-        code: `enum ApiStatus {
-    Idle = 'idle',
-    Pending = 'pending',
-    Success = 'success',
-    Error = 'error',
+      title: 'Dynamic Welcome Message',
+      description: 'A React component that displays a welcome message. It uses state to dynamically update content based on user interaction.',
+      language: 'React',
+      code: `() => {
+    const [name, setName] = React.useState('Guest');
+    const names = ['Alice', 'Bob', 'Charlie', 'Guest'];
+    const changeName = () => {
+      const currentIndex = names.indexOf(name);
+      const nextIndex = (currentIndex + 1) % names.length;
+      setName(names[nextIndex]);
+    };
+
+    return (
+        <div className="text-center p-4">
+            <h2 className="text-2xl font-bold font-headline">Hello, {name}!</h2>
+            <Button variant="outline" size="sm" onClick={changeName} className="mt-4">
+                Change User
+            </Button>
+        </div>
+    );
+}`,
+      tags: ['react', 'state', 'dynamic-content'],
+    },
+     // --- HTML + Tailwind ---
+    {
+      title: 'Modern Pricing Card',
+      description: 'A responsive pricing card styled with Tailwind CSS, featuring a prominent call-to-action button and a list of features.',
+      language: 'HTML',
+      code: `<div class="w-full max-w-sm mx-auto p-6 bg-card text-card-foreground rounded-xl border shadow-lg">
+  <h3 class="text-2xl font-headline font-bold text-center">Pro Plan</h3>
+  <p class="text-center text-muted-foreground mt-2">For power users</p>
+  <div class="my-6 text-center">
+    <span class="text-4xl font-extrabold">$15</span>
+    <span class="text-muted-foreground">/month</span>
+  </div>
+  <ul class="space-y-3 text-sm mb-8">
+    <li class="flex items-center gap-2">
+      <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+      <span>Unlimited Snippets</span>
+    </li>
+    <li class="flex items-center gap-2">
+      <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+      <span>Private Snippets</span>
+    </li>
+    <li class="flex items-center gap-2">
+      <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+      <span>AI Features</span>
+    </li>
+  </ul>
+  <button class="w-full h-10 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90">
+    Get Started
+  </button>
+</div>`,
+      tags: ['html', 'tailwind-css', 'ui', 'card', 'pricing'],
+    },
+    {
+      title: 'Simple Alert Component',
+      description: 'A simple alert component styled with Tailwind CSS, suitable for displaying informational messages to the user.',
+      language: 'HTML',
+      code: `<div class="max-w-md mx-auto p-4 rounded-md border-l-4 border-blue-500 bg-blue-50 text-blue-800">
+  <div class="flex items-start">
+    <svg class="w-5 h-5 mr-3 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+    </svg>
+    <div>
+      <h4 class="font-bold">Information</h4>
+      <p class="text-sm">This is an informational alert. Use it to provide helpful tips or updates to your users.</p>
+    </div>
+  </div>
+</div>`,
+      tags: ['html', 'tailwind-css', 'alert', 'ui-component'],
+    },
+    // --- JavaScript ---
+    {
+      title: 'Log Array Items to Console',
+      description: 'A basic JavaScript snippet that iterates over an array of fruits and logs each one to the console.',
+      language: 'JavaScript',
+      code: `const fruits = ['Apple', 'Banana', 'Cherry', 'Date'];
+
+console.log("Logging all fruits:");
+fruits.forEach((fruit, index) => {
+    console.log(\`Item \${index + 1}: \${fruit}\`);
+});
+
+console.log("...done!");`,
+      tags: ['javascript', 'loop', 'array', 'console'],
+    },
+    {
+      title: 'Simple Math Operations',
+      description: 'Demonstrates basic arithmetic operations in JavaScript and logs the results to the console for inspection.',
+      language: 'JavaScript',
+      code: `const a = 10;
+const b = 5;
+
+console.log(\`Numbers are a = \${a}, b = \${b}\`);
+console.log('Addition:', a + b);
+console.log('Subtraction:', a - b);
+console.log('Multiplication:', a * b);
+console.log('Division:', a / b);`,
+      tags: ['javascript', 'math', 'operators', 'console'],
+    },
+    // --- Python ---
+    {
+      title: 'Python Fibonacci Sequence',
+      description: 'A Python script that generates and prints the first 10 numbers in the Fibonacci sequence.',
+      language: 'Python',
+      code: `# Fibonacci Sequence
+a, b = 0, 1
+print("First 10 Fibonacci numbers:")
+for _ in range(10):
+    print(a)
+    a, b = b, a + b`,
+      tags: ['python', 'fibonacci', 'loop', 'algorithm'],
+    },
+    {
+      title: 'Python Dictionary Iteration',
+      description: 'This snippet demonstrates how to iterate through a Python dictionary and print its key-value pairs.',
+      language: 'Python',
+      code: `user_info = {
+  "name": "Alex",
+  "role": "Developer",
+  "experience": 5
 }
 
-// Usage
-let currentStatus: ApiStatus = ApiStatus.Idle;`,
-        tags: ["typescript", "enum", "api"]
+print("User Information:")
+for key, value in user_info.items():
+    print(f"- {key.capitalize()}: {value}")`,
+      tags: ['python', 'dictionary', 'data-structures', 'iteration'],
     },
-    // Python
-    {
-      title: 'Simple Python Flask Server',
-      description: 'A minimal Flask application to serve a simple JSON response. Great for starting a new API.',
-      language: 'Python',
-      code: `from flask import Flask, jsonify
-
-app = Flask(__name__)
-
-@app.route('/api/hello')
-def hello():
-    return jsonify(message='Hello, World!')
-
-if __name__ == '__main__':
-    app.run(debug=True)`,
-      tags: ['python', 'flask', 'api', 'backend'],
-    },
-     {
-      title: 'Python Check if File Exists',
-      description: 'A simple Python function to check if a file exists at a given path.',
-      language: 'Python',
-      code: `import os
-
-def file_exists(filepath):
-    return os.path.exists(filepath)
-
-# Example
-if file_exists("my_file.txt"):
-    print("File found!")
-else:
-    print("File not found.")`,
-      tags: ['python', 'file-system', 'utility'],
-    },
-    // Go
+    // --- Go ---
     {
       title: 'Go Simple HTTP Server',
-      description: 'A basic HTTP server in Go that listens on port 8080 and responds with "Hello, World!".',
+      description: 'A basic HTTP server in Go that listens on port 8080 and responds with "Hello, World!". This snippet is not previewable.',
       language: 'Go',
       code: `package main
 
@@ -169,10 +197,10 @@ func main() {
       tags: ['go', 'http', 'server', 'backend'],
     },
     {
-        title: "Go JSON Marshaling",
-        description: "An example of how to marshal a struct into a JSON string in Go.",
-        language: "Go",
-        code: `package main
+      title: "Go JSON Marshaling",
+      description: "An example of how to marshal a struct into a JSON string in Go. This snippet is not previewable.",
+      language: "Go",
+      code: `package main
 
 import (
     "encoding/json"
@@ -193,13 +221,15 @@ func main() {
     }
     fmt.Println(string(userJson))
 }`,
-        tags: ["go", "json", "structs"]
+      tags: ["go", "json", "structs"]
     }
   ];
 
   for (const snippet of snippets) {
-    await prisma.snippet.create({
-      data: {
+    await prisma.snippet.upsert({
+      where: { title: snippet.title },
+      update: {},
+      create: {
         ...snippet,
         authorId: adminUser.id,
       },
@@ -337,8 +367,10 @@ Tailwind CSS is a utility-first CSS framework for rapidly building custom user i
   ];
 
   for (const component of components) {
-    await prisma.component.create({
-      data: component
+    await prisma.component.upsert({
+        where: { title: component.title },
+        update: {},
+        create: component
     });
   }
 
