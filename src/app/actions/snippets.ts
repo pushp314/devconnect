@@ -94,7 +94,7 @@ export async function getSnippetById(id: string) {
 }
 
 
-export async function getSnippets({ page = 1, limit = 10, query, language, sortBy }: { page?: number; limit?: number; query?: string, language?: string, sortBy?: 'newest' | 'most-liked' | 'most-commented' }) {
+export async function getSnippets({ page = 1, limit = 20, query, language, sortBy }: { page?: number; limit?: number; query?: string, language?: string, sortBy?: 'newest' | 'most-liked' | 'most-commented' }) {
     const whereClause: any = {};
      if (language && language !== 'All') {
         whereClause.language = language;

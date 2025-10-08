@@ -16,7 +16,7 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { TagInput } from '@/components/tag-input';
 import { Loader2, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -25,8 +25,12 @@ import { useState } from "react";
 import { createSnippet, updateSnippet } from "@/app/actions/snippets";
 import { useRouter } from "next/navigation";
 import type { Snippet } from "@prisma/client";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ShieldCheck } from "lucide-react";
 
-const languages = ["TypeScript", "JavaScript"];
+const previewLanguages = ["React", "HTML", "JavaScript"];
+const codeOnlyLanguages = ["TypeScript", "Python", "Go", "Rust", "Java", "C#"];
+
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters.").max(100),
@@ -56,6 +60,9 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
       tags: snippet?.tags || [],
     },
   });
+
+  const selectedLanguage = form.watch("language");
+  const isPreviewAvailable = previewLanguages.includes(selectedLanguage);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -115,7 +122,7 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-2xl">{isEditMode ? 'Edit Snippet' : 'Share a New Snippet'}</CardTitle>
-          <CardDescription>{isEditMode ? 'Update the details of your snippet.' : 'Share a preview-able React snippet with the community.'}</CardDescription>
+          <CardDescription>{isEditMode ? 'Update the details of your snippet.' : 'Share your code with the community. Some languages support live previews.'}</CardDescription>
         </CardHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -162,18 +169,33 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {languages.map(lang => (
-                          <SelectItem key={lang} value={lang}>{lang}</SelectItem>
-                        ))}
+                        <SelectGroup>
+                            <SelectLabel>Live Preview Available</SelectLabel>
+                            {previewLanguages.map(lang => (
+                                <SelectItem key={lang} value={lang}>{lang}</SelectItem>
+                            ))}
+                        </SelectGroup>
+                        <SelectGroup>
+                             <SelectLabel>Code Only</SelectLabel>
+                            {codeOnlyLanguages.map(lang => (
+                                <SelectItem key={lang} value={lang}>{lang}</SelectItem>
+                            ))}
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
-                     <FormDescription>
-                      Only languages that can be rendered as interactive React components are available.
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+               {isPreviewAvailable && (
+                  <Alert>
+                    <ShieldCheck className="h-4 w-4" />
+                    <AlertTitle className="font-headline">Live Preview Safety</AlertTitle>
+                    <AlertDescription className="text-xs">
+                     For security, live previews run in a sandbox. Network requests, cookies, and other sensitive APIs are disabled.
+                    </AlertDescription>
+                  </Alert>
+                )}
               <FormField
                 control={form.control}
                 name="code"
@@ -182,16 +204,16 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
                     <FormLabel>Code</FormLabel>
                     <FormControl>
                        <Textarea
-                        placeholder="() => {
-  const [count, setCount] = React.useState(0);
-  return <Button onClick={() => setCount(count + 1)}>Clicked {count} times</Button>
-}"
+                        placeholder="Paste your code here..."
                         className="font-code min-h-[200px]"
                         {...field}
                       />
                     </FormControl>
                     <FormDescription>
-                      Your code must be a valid, self-contained React (TSX/JSX) component. You can use TailwindCSS classes and Lucide icons.
+                     {isPreviewAvailable 
+                        ? 'Your code must be a valid, self-contained component or script. TailwindCSS classes are supported.'
+                        : 'Your code will be displayed as a static, read-only block.'
+                     }
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
