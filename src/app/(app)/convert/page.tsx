@@ -3,14 +3,14 @@
 
 import { useState } from 'react';
 import { useTheme } from 'next-themes';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
+import { Textarea } from '../../../components/ui/textarea';
+import { Button } from "../../../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "../../../components/ui/select";
 import { ArrowRight, Loader2 } from 'lucide-react';
-import { CodeBlock } from '@/components/code-block';
-import { convertCodeAction } from '@/app/actions/ai';
-import { useToast } from '@/hooks/use-toast';
+import { CodeBlock } from '../../../components/code-block';
+import { convertCodeAction } from '../../../app/actions/ai';
+import { useToast } from '../../../hooks/use-toast';
 import { Highlight, themes } from 'prism-react-renderer';
 
 const languageSuggestions = {
