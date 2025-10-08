@@ -12,15 +12,23 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { DeleteDocButton } from '@/components/delete-doc-button';
 
 const renderMarkdown = (markdown: string) => {
-  const parts = markdown.split(/(```[\s\S]*?```)/);
+  const parts = markdown.split(/(```(?:\w+\n)?[\s\S]*?```)/);
   return parts.map((part, index) => {
-    const codeMatch = part.match(/```(\w+)?\n([\s\S]+)```/);
-    if (codeMatch) {
-      const language = codeMatch[1] || 'bash';
-      const code = codeMatch[2];
-      return <div className="my-6" key={index}><CodeBlock language={language} code={code} /></div>;
+    if (part.startsWith('```')) {
+      const codeMatch = part.match(/```(\w+)?\n([\s\S]+)```/);
+      if (codeMatch) {
+        const language = codeMatch[1] || 'bash';
+        const code = codeMatch[2];
+        return <div className="my-6" key={index}><CodeBlock language={language} code={code} /></div>;
+      }
     }
+    
+    // Process non-code parts
     return part.split('\n').map((line, lineIndex) => {
+      // Skip empty lines that are just whitespace
+      if (line.trim() === '') {
+        return <br key={`${index}-${lineIndex}`} />;
+      }
       if (line.startsWith('# ')) {
         return <h1 key={`${index}-${lineIndex}`} className="text-4xl font-extrabold font-headline mt-10 mb-4 pb-2 border-b">{line.substring(2)}</h1>;
       }
@@ -30,13 +38,12 @@ const renderMarkdown = (markdown: string) => {
       if (line.startsWith('### ')) {
         return <h3 key={`${index}-${lineIndex}`} className="text-2xl font-bold font-headline mt-6 mb-3">{line.substring(4)}</h3>;
       }
-      if (line.trim() === '') {
-        return <br key={`${index}-${lineIndex}`} />;
-      }
+      // Only render non-empty lines as paragraphs
       return <p key={`${index}-${lineIndex}`} className="my-4 leading-relaxed text-lg">{line}</p>;
     });
   });
 };
+
 
 export default async function DocPage({ params }: { params: { slug: string } }) {
   const session = await auth();
