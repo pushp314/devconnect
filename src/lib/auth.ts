@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import Google from "next-auth/providers/google";
 import GitHub from "next-auth/providers/github";
 import type { Adapter } from "next-auth/adapters";
-import type { User } from "@prisma/client";
+import type { User, Role } from "@prisma/client";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db) as Adapter,
@@ -26,7 +26,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
         session.user.id = user.id;
         session.user.username = dbUser?.username ?? null;
-        (session.user as User).purchasedComponentIds = dbUser?.purchasedComponentIds ?? [];
+        session.user.role = dbUser?.role ?? 'USER';
+        (session.user as any).purchasedComponentIds = dbUser?.purchasedComponentIds ?? [];
 
       }
       return session;

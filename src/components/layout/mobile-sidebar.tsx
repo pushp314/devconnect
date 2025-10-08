@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Code, Menu } from "lucide-react"
 import { useCurrentUser } from "@/hooks/use-current-user"
+import { Role } from "@prisma/client"
 
 export function MobileSidebar() {
   const [open, setOpen] = useState(false)
@@ -47,7 +48,7 @@ export function MobileSidebar() {
                         ? user?.username ? link.href.replace('[[username]]', user.username) : '/auth/signin'
                         : link.href;
                       
-                       if (link.label === 'Admin' && user?.email !== 'pusprajsharma314@gmail.com') {
+                       if (link.label === 'Admin' && user?.role !== Role.ADMIN) {
                         return null;
                        }
 

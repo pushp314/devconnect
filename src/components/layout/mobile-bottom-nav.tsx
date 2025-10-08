@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Dock from './dock';
 import { navSections } from '@/lib/nav-config';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { Role } from '@prisma/client';
 
 export function MobileBottomNav() {
   const router = useRouter();
@@ -14,7 +15,7 @@ export function MobileBottomNav() {
 
   const dockItems = allNavItems
     .filter(item => {
-        if (item.label === 'Admin' && user?.email !== 'pusprajsharma314@gmail.com') {
+        if (item.label === 'Admin' && user?.role !== Role.ADMIN) {
             return false;
         }
         return true;

@@ -3,11 +3,11 @@ import { AnalyticsCard } from "./_components/analytics-card";
 import { DollarSign, PackageCheck, PackageClock, Users } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { Role } from "@prisma/client";
 
 export default async function AdminDashboardPage() {
     const session = await auth();
-    // In a real app, you'd check for an admin role
-    if (!session?.user) {
+    if (!session?.user || session.user.role !== Role.ADMIN) {
         redirect("/auth/signin");
     }
 

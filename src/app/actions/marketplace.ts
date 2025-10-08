@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import type { Component, User, Order, Review } from '@prisma/client';
 import { z } from 'zod';
 import { notFound, redirect } from 'next/navigation';
+import { Role } from '@prisma/client';
 
 export type PopulatedMarketplaceComponent = Component & {
     creator: User;
@@ -242,12 +243,15 @@ export async function getUploadedComponentsForUser() {
 
 
 // --- Admin Actions ---
+async function verifyAdmin() {
+    const session = await auth();
+    if (!session?.user || session.user.role !== Role.ADMIN) {
+        throw new Error("Unauthorized");
+    }
+}
+
 export async function getPendingComponents() {
-  const session = await auth();
-  // In a real app, you'd check for an admin role here
-  if (!session?.user) {
-    throw new Error("Unauthorized");
-  }
+  await verifyAdmin();
 
   return db.component.findMany({
     where: { status: "pending" },
@@ -257,11 +261,7 @@ export async function getPendingComponents() {
 }
 
 async function updateComponentStatus(componentId: string, status: "approved" | "rejected") {
-    const session = await auth();
-    // In a real app, you'd check for an admin role here
-    if (!session?.user) {
-      throw new Error("Unauthorized");
-    }
+    await verifyAdmin();
 
     await db.component.update({
         where: { id: componentId },

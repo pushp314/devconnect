@@ -2,12 +2,11 @@
 
 import { db } from '@/lib/db';
 import { auth } from '@/lib/auth';
+import { Role } from '@prisma/client';
 
-// A real app would have role-based access control.
-// For this MVP, we just check if the user is logged in.
 async function verifyAdmin() {
     const session = await auth();
-    if (!session?.user) {
+    if (!session?.user || session.user.role !== Role.ADMIN) {
         throw new Error("Unauthorized");
     }
 }

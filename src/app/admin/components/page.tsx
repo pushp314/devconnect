@@ -2,11 +2,11 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getPendingComponents } from "@/app/actions/marketplace";
 import { AdminComponentCard } from "./_components/admin-component-card";
+import { Role } from "@prisma/client";
 
 export default async function AdminComponentsPage() {
     const session = await auth();
-    // In a real app, you'd check for an admin role
-    if (!session?.user) {
+    if (!session?.user || session.user.role !== Role.ADMIN) {
         redirect("/auth/signin");
     }
 

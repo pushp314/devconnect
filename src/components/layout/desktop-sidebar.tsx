@@ -8,6 +8,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Button } from '../ui/button';
 import { ShoppingBag } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { Role } from '@prisma/client';
 
 export function DesktopSidebar() {
   const pathname = usePathname();
@@ -31,7 +32,7 @@ export function DesktopSidebar() {
                         ? user?.username ? link.href.replace('[[username]]', user.username) : '/auth/signin'
                         : link.href;
 
-                      if (link.label === 'Admin' && user?.email !== 'pusprajsharma314@gmail.com') {
+                      if (link.label === 'Admin' && user?.role !== Role.ADMIN) {
                         return null;
                       }
 
