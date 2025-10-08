@@ -36,4 +36,7 @@ export const navSections = [
     items: [
       { label: 'Profile', href: `/profile/me`, icon: User },
       { label: 'Saved', href: '/saved', icon: Bookmark },
-      { label: 'Settings', href:
+      { label: 'Settings', href: '/settings', icon: Settings },
+    ],
+  },
+];

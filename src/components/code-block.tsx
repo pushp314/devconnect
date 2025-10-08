@@ -53,3 +53,5 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
         <span className="sr-only">Copy code</span>
       </Button>
     </div>
+  );
+}
