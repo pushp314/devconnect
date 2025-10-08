@@ -11,12 +11,12 @@ const adminNavItems = [
     {
         title: "Dashboard",
         href: "/admin",
-        icon: <LayoutDashboard className="h-4 w-4" />,
+        icon: LayoutDashboard,
     },
     {
         title: "Approvals",
         href: "/admin/components",
-        icon: <ShieldCheck className="h-4 w-4" />,
+        icon: ShieldCheck,
     },
 ];
 

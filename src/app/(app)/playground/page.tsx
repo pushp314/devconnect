@@ -47,6 +47,7 @@ export default function PlaygroundPage() {
         useState,
         ...React,
         Button,
+        LucideReact,
         ...LucideReact,
         cn,
     };
