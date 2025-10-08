@@ -2,9 +2,8 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { User } from "@prisma/client";
-import { FollowButton } from "./follow-button";
-import { getUserProfile } from "@/app/actions/users";
 import { Button } from "./ui/button";
+import { ArrowRight } from "lucide-react";
 
 interface UserCardProps {
   user: User;
@@ -12,10 +11,6 @@ interface UserCardProps {
 
 export async function UserCard({ user }: UserCardProps) {
     const userInitials = user.name?.split(' ').map(n => n[0]).join('') ?? '';
-    
-    // We need to get the `isFollowing` status for the button
-    const profile = await getUserProfile(user.username!);
-    const isFollowing = profile?.isFollowing ?? false;
 
   return (
     <Card className="text-center transition-all hover:shadow-lg hover:border-primary/50 flex flex-col">
@@ -40,7 +35,12 @@ export async function UserCard({ user }: UserCardProps) {
           {user.bio}
         </p>
         <div className="mt-auto">
-            <FollowButton targetUserId={user.id} isFollowing={isFollowing} />
+            <Button asChild variant="outline" size="sm">
+                <Link href={`/profile/${user.username}`}>
+                    View Profile
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+            </Button>
         </div>
       </CardContent>
     </Card>
