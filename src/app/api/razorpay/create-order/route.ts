@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     }
 
     const options = {
-      amount: component.price * 100, // amount in the smallest currency unit
+      amount: component.price * 100, // amount in the smallest currency unit (paise)
       currency: "INR",
       receipt: `receipt_${component.id.slice(0,10)}_${Date.now()}`,
     };

@@ -27,7 +27,7 @@ import { useCurrentUser } from "@/hooks/use-current-user";
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters.").max(100),
   description: z.string().min(10, "Description must be at least 10 characters.").max(1000),
-  price: z.coerce.number().min(0, "Price cannot be negative."),
+  price: z.coerce.number().int("Price must be a whole number.").min(0, "Price cannot be negative."),
   tags: z.array(z.string()).min(1, "Please add at least one tag.").max(10),
   previewImages: z.custom<FileList>().refine(files => files.length > 0, 'At least one preview image is required.'),
   componentZip: z.custom<FileList>().refine(files => files.length === 1, 'A single ZIP file is required.'),
