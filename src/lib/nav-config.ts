@@ -10,6 +10,7 @@ import {
   Bug,
   Replace,
   User,
+  ShoppingBag,
 } from 'lucide-react';
 
 export const navSections = [
@@ -21,6 +22,7 @@ export const navSections = [
       { label: 'Components', href: '/components', icon: SquareCode },
       { label: 'Docs', href: '/docs', icon: BookOpen },
       { label: 'Community', href: '/community', icon: Users },
+      { label: 'Marketplace', href: '/components-marketplace', icon: ShoppingBag },
     ],
   },
   {
