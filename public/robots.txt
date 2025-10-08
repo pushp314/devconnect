@@ -1,0 +1,11 @@
+# See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
+#
+# To allow most search engines access to all content
+User-agent: *
+Disallow: /admin
+Disallow: /settings
+Disallow: /auth
+Disallow: /blocked
+Disallow: /dashboard
+
+Sitemap: https://code.appnity.co.in/sitemap.xml
