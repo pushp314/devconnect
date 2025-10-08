@@ -19,7 +19,7 @@ export const navSections = [
     items: [
       { label: 'Feed', href: '/feed', icon: Home },
       { label: 'Explore', href: '/explore', icon: Compass },
-      { label: 'Components', href: '/components', icon: SquareCode },
+      { label: 'Component Library', href: '/components', icon: SquareCode },
       { label: 'Docs', href: '/docs', icon: BookOpen },
       { label: 'Community', href: '/community', icon: Users },
       { label: 'Marketplace', href: '/components-marketplace', icon: ShoppingBag },

@@ -8,7 +8,7 @@ export default async function ComponentsPage() {
   return (
     <div className="container py-8">
       <h1 className="text-3xl font-bold font-headline mb-6">
-        Component Marketplace
+        Component Library
       </h1>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {components.map((component) => (
